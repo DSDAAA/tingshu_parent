@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding" native2AsciiForPropertiesFiles="true" defaultCharsetForPropertiesFiles="UTF-8">
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tingshu_common/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tingshu_common/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tingshu_common/tingshu_common_log/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tingshu_common/tingshu_common_utils/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tingshu_common/tingshu_core_utils/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tingshu_common/tingshu_kafka_utils/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tingshu_common/tingshu_security/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tingshu_core/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tingshu_core/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tingshu_core/tingshu_account/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tingshu_core/tingshu_album/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tingshu_core/tingshu_user/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tingshu_feign_client/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tingshu_gateway/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tingshu_mbg/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tingshu_model/src/main/java" charset="UTF-8" />
+    <file url="PROJECT" charset="UTF-8" />
+  </component>
+</project>

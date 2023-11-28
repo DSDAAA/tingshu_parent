@@ -1,0 +1,11 @@
+# Project exclude paths
+/tingshu_common/tingshu_common_log/target/
+/tingshu_common/tingshu_common_utils/target/
+/tingshu_common/tingshu_core_utils/target/
+/tingshu_common/tingshu_kafka_utils/target/
+/tingshu_common/tingshu_security/target/
+/tingshu_core/tingshu_album/target/
+/tingshu_core/tingshu_user/target/
+/tingshu_feign_client/target/
+/tingshu_mbg/target/
+/tingshu_model/target/
