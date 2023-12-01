@@ -14,10 +14,10 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 192.168.121.130:8848
+        server-addr: 192.168.76.100:8848
     sentinel:
       transport:
-        dashboard: 192.168.121.130:8080
+        dashboard: 192.168.76.100:8080
     openfeign:
       lazy-attributes-resolution: true
     gateway:
@@ -60,7 +60,7 @@ spring:
           predicates:
             - Path=/*/live/**
         - id: service-live-websocket
-          uri: lb:ws://service-live #ws://192.168.121.130:8507
+          uri: lb:ws://service-live #ws://192.168.76.100:8507
           predicates:
             - Path=/api/websocket/**
         - id: tingshu-account

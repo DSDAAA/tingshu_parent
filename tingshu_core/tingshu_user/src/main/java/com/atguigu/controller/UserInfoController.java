@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 用户 前端控制器
  * </p>
  *
- * @author 强哥
+ * @author Dunston
  * @since 2023-11-28
  */
 @RestController

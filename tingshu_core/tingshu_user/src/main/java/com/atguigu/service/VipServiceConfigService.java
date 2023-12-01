@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * vip服务配置表 服务类
  * </p>
  *
- * @author 强哥
+ * @author Dunston
  * @since 2023-11-28
  */
 public interface VipServiceConfigService extends IService<VipServiceConfig> {

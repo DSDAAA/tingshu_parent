@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
  * vip服务配置表 服务实现类
  * </p>
  *
- * @author 强哥
+ * @author Dunston
  * @since 2023-11-28
  */
 @Service

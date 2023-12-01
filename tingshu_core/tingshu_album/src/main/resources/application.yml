@@ -18,16 +18,16 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 192.168.121.130:8848
+        server-addr: 192.168.76.100:8848
     sentinel:
       transport:
-        dashboard: 192.168.121.130:8080
+        dashboard: 192.168.76.100:8080
   main:
     allow-bean-definition-overriding: true #当遇到同样名字的时候，是否允许覆盖注册
     allow-circular-references: true
   data:
     redis:
-      host: 192.168.121.130
+      host: 192.168.76.100
       port: 6389
       database: 0
       timeout: 1800000
@@ -38,13 +38,13 @@ spring:
           max-idle: 5    #最大空闲
           min-idle: 0     #最小空闲
     mongodb:
-      host: 192.168.121.130
+      host: 192.168.76.100
       port: 27017
       database: admin #指定操作的数据库
       password: '123'
       username: root
   kafka:
-    bootstrap-servers: 192.168.121.130:9092
+    bootstrap-servers: 192.168.76.100:9092
     producer:
       retries: 3  #设置大于0的值，则客户端会将发送失败的记录重新发送
       acks: 1
@@ -61,7 +61,7 @@ spring:
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.121.130:3316/tingshu_album?characterEncoding=utf-8&useSSL=false
+    url: jdbc:mysql://192.168.76.100:3316/tingshu_album?characterEncoding=utf-8&useSSL=false
     username: root
     password: 123
   jackson:
@@ -72,7 +72,7 @@ spring:
       max-file-size: 100MB     #单个文件最大限制
       max-request-size: 200MB  #多个文件最大限制
 minio:
-  endpoint: http://192.168.121.130:9000
+  endpoint: http://192.168.76.100:9000
   access-key: enjoy6288
   secret-key: enjoy6288
   bucket-name: java0710

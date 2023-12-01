@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * 用户已付款专辑 服务类
  * </p>
  *
- * @author 强哥
+ * @author Dunston
  * @since 2023-11-28
  */
 public interface UserPaidAlbumService extends IService<UserPaidAlbum> {

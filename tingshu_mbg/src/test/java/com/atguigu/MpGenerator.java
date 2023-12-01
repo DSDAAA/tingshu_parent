@@ -5,11 +5,11 @@ import com.baomidou.mybatisplus.generator.FastAutoGenerator;
 public class MpGenerator {
     //具体设置 https://blog.csdn.net/cx19910829/article/details/126889724
     public static void main(String[] args) {
-        FastAutoGenerator.create("jdbc:mysql://192.168.121.130:3316/tingshu_user?serverTimezone=GMT%2B8",
+        FastAutoGenerator.create("jdbc:mysql://192.168.76.100:3316/tingshu_user?serverTimezone=GMT%2B8",
                         "root",
                         "123")
                 .globalConfig(builder -> {
-                    builder.author("强哥") // 设置作者
+                    builder.author("Dunston") // 设置作者
                             //.enableSwagger() // 开启 swagger 模式
                             .disableOpenDir()
                             .outputDir("C:\\230710\\code\\tingshu_parent\\tingshu_core\\tingshu_user\\src\\main\\java"); // 指定输出目录
