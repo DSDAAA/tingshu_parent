@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.atguigu.mapper.BaseCategoryViewMapper">
+    <resultMap id="categoryMap" type="com.atguigu.vo.CategoryVo">
+        <id property="categoryid" column="category1Id"></id>
+        <result property="categoryName" column="category1Name"></result>
+        <collection property="categoryChild" ofType="com.atguigu.vo.CategoryVo">
+            <id property="categoryid" column="category2Id"></id>
+            <result property="categoryName" column="category2Name"></result>
+            <collection property="categoryChild" ofType="com.atguigu.vo.CategoryVo">
+                <id property="categoryid" column="category3Id"></id>
+                <result property="categoryName" column="category3Name"></result>
+            </collection>
+        </collection>
+    </resultMap>
 
+    <select id="getAllCategoryList" resultMap="categoryMap">
+        SELECT c1.id   categoryIid,
+               c1.NAME category1Name,
+               c2.id   category2Id,
+               c2.NAME category2Name,
+               c3.id   category3Id,
+               c3.NAME category3Name
+        FROM base_category1 c1
+                 LEFT JOIN base_category2 c2 on c1.id = c2.category1_id
+                 LEFT JOIN base_category3 c3 on c2.id = c3.category2_id
+    </select>
 </mapper>

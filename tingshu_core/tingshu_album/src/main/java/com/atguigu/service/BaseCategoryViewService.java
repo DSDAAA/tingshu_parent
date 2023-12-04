@@ -1,7 +1,10 @@
 package com.atguigu.service;
 
 import com.atguigu.entity.BaseCategoryView;
+import com.atguigu.vo.CategoryVo;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +16,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface BaseCategoryViewService extends IService<BaseCategoryView> {
 
+    List<CategoryVo> getAllCategoryList();
 }

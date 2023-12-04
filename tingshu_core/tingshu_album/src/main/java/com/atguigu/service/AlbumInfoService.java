@@ -13,4 +13,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface AlbumInfoService extends IService<AlbumInfo> {
 
+    void saveAlbumInfo(AlbumInfo albumInfo);
 }
