@@ -75,7 +75,7 @@ minio:
   endpoint: http://192.168.76.100:9000
   access-key: enjoy6288
   secret-key: enjoy6288
-  bucket-name: java0710
+  bucket-name: tingshu
 vod:
   appId: 1307503602
   secretId: AKIDxjGYcR0KPFqBH8j6E7l9ICqFOO9fvwiE
