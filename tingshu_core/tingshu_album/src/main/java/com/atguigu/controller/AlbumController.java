@@ -9,6 +9,7 @@ import com.atguigu.query.AlbumInfoQuery;
 import com.atguigu.result.RetVal;
 import com.atguigu.service.AlbumInfoService;
 import com.atguigu.service.BaseCategoryViewService;
+import com.atguigu.util.AuthContextHolder;
 import com.atguigu.vo.AlbumTempVo;
 import com.atguigu.vo.CategoryVo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -46,6 +47,7 @@ public class AlbumController {
         return RetVal.ok();
     }
 
+    @TingShuLogin(required = true)
     @Operation(summary = "分页查询专辑")
     @PostMapping("getUserAlbumByPage/{pageNum}/{pageSize}")
     public RetVal getUserAlbumByPage(@Parameter(name = "pageNum", description = "当前页码", required = true)
@@ -54,8 +56,31 @@ public class AlbumController {
                                      @PathVariable Long pageSize,
                                      @Parameter(name = "albumInfoQuery", description = "查询对象", required = false)
                                      AlbumInfoQuery albumInfoQuery) {
+        Long userId = AuthContextHolder.getUserId();
+        albumInfoQuery.setUserId(userId);
         IPage<AlbumTempVo> pageParam = new Page<>(pageNum, pageSize);
-        albumInfoMapper.getUserAlbumByPage(pageParam);
+        pageParam = albumInfoMapper.getUserAlbumByPage(pageParam, albumInfoQuery);
+        return RetVal.ok(pageParam);
+    }
+
+    @Operation(summary = "根据id查询专辑信息")
+    @PostMapping("getAlbumInfoById/{albumId}")
+    public RetVal getAlbumInfoById(@PathVariable Long albumId) {
+        AlbumInfo albumInfo = albumInfoService.getAlbumInfoById(albumId);
+        return RetVal.ok(albumInfo);
+    }
+
+    @Operation(summary = "修改专辑")
+    @PutMapping("updateAlbumInfo/{albumId}")
+    public RetVal updateAlbumInfo(@RequestBody AlbumInfo albumInfo) {
+        albumInfoService.updateAlbumInfo(albumInfo);
+        return RetVal.ok(albumInfo);
+    }
+
+    @Operation(summary = "删除专辑")
+    @PutMapping("deleteAlbumInfo/{albumId}")
+    public RetVal deleteAlbumInfo(@PathVariable Long albumId) {
+        albumInfoService.deleteAlbumInfo(albumId);
         return RetVal.ok();
     }
 }

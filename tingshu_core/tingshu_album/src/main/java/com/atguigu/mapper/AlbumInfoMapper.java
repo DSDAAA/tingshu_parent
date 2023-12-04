@@ -1,7 +1,10 @@
 package com.atguigu.mapper;
 
 import com.atguigu.entity.AlbumInfo;
+import com.atguigu.query.AlbumInfoQuery;
+import com.atguigu.vo.AlbumTempVo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 
 /**
  * <p>
@@ -13,4 +16,5 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  */
 public interface AlbumInfoMapper extends BaseMapper<AlbumInfo> {
 
+    IPage<AlbumTempVo> getUserAlbumByPage(IPage<AlbumTempVo> pageParam, AlbumInfoQuery albumInfoQuery);
 }
