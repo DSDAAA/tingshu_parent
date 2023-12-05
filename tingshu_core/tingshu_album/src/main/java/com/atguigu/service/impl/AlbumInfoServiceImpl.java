@@ -4,6 +4,7 @@ import com.atguigu.constant.SystemConstant;
 import com.atguigu.entity.AlbumAttributeValue;
 import com.atguigu.entity.AlbumInfo;
 import com.atguigu.entity.AlbumStat;
+import com.atguigu.entity.TrackInfo;
 import com.atguigu.mapper.AlbumInfoMapper;
 import com.atguigu.service.AlbumAttributeValueService;
 import com.atguigu.service.AlbumInfoService;

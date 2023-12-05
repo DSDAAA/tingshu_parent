@@ -55,7 +55,7 @@ public class AlbumController {
                                      @Parameter(name = "pageSize", description = "每页记录数", required = true)
                                      @PathVariable Long pageSize,
                                      @Parameter(name = "albumInfoQuery", description = "查询对象", required = false)
-                                     AlbumInfoQuery albumInfoQuery) {
+                                     @RequestBody AlbumInfoQuery albumInfoQuery) {
         Long userId = AuthContextHolder.getUserId();
         albumInfoQuery.setUserId(userId);
         IPage<AlbumTempVo> pageParam = new Page<>(pageNum, pageSize);
@@ -74,11 +74,11 @@ public class AlbumController {
     @PutMapping("updateAlbumInfo/{albumId}")
     public RetVal updateAlbumInfo(@RequestBody AlbumInfo albumInfo) {
         albumInfoService.updateAlbumInfo(albumInfo);
-        return RetVal.ok(albumInfo);
+        return RetVal.ok();
     }
 
     @Operation(summary = "删除专辑")
-    @PutMapping("deleteAlbumInfo/{albumId}")
+    @DeleteMapping("deleteAlbumInfo/{albumId}")
     public RetVal deleteAlbumInfo(@PathVariable Long albumId) {
         albumInfoService.deleteAlbumInfo(albumId);
         return RetVal.ok();

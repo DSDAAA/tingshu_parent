@@ -1,6 +1,7 @@
 package com.atguigu.service;
 
 import com.atguigu.entity.AlbumInfo;
+import com.atguigu.entity.TrackInfo;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
