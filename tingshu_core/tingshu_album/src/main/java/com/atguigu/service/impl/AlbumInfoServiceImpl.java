@@ -1,5 +1,6 @@
 package com.atguigu.service.impl;
 
+import com.atguigu.constant.RedisConstant;
 import com.atguigu.constant.SystemConstant;
 import com.atguigu.entity.AlbumAttributeValue;
 import com.atguigu.entity.AlbumInfo;
@@ -10,15 +11,25 @@ import com.atguigu.service.AlbumAttributeValueService;
 import com.atguigu.service.AlbumInfoService;
 import com.atguigu.service.AlbumStatService;
 import com.atguigu.util.AuthContextHolder;
+import com.atguigu.util.SleepUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -70,6 +81,62 @@ public class AlbumInfoServiceImpl extends ServiceImpl<AlbumInfoMapper, AlbumInfo
         List<AlbumAttributeValue> albumAttributeValueList = albumAttributeValueService.list(albumInfoLambdaQueryWrapper);
         albumInfo.setAlbumPropertyValueList(albumAttributeValueList);
         return null;
+    }
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    private AlbumInfo getAllInfoFromRedis(Long albumId) {
+//        redisTemplate.setKeySerializer(new StringRedisSerializer());
+//        GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer = new GenericJackson2JsonRedisSerializer();
+//        redisTemplate.setValueSerializer(genericJackson2JsonRedisSerializer);
+        String cacgeKey = RedisConstant.ALBUM_INFO_PREFIX + albumId;
+        AlbumInfo albumInfoRedis = (AlbumInfo) redisTemplate.opsForValue().get(cacgeKey);
+        if (albumInfoRedis == null) {
+            AlbumInfo allInfoDB = getAllInfoFromRedis(albumId);
+            redisTemplate.opsForValue().set(cacgeKey, allInfoDB);
+            return allInfoDB;
+        }
+        return albumInfoRedis;
+    }
+
+    ThreadLocal<String> threadLocal = new ThreadLocal<>();
+
+    private AlbumInfo getAlbumInfoFromRedisWithThreadLocal(Long albumId) {
+        String cacgeKey = RedisConstant.ALBUM_INFO_PREFIX + albumId;
+        AlbumInfo albumInfoRedis = (AlbumInfo) redisTemplate.opsForValue().get(cacgeKey);
+        if (albumInfoRedis == null) {
+            String token = threadLocal.get();
+            boolean accquireLock = false;
+            if (!StringUtils.isEmpty(token)) {
+                accquireLock = true;
+            } else {
+                token = UUID.randomUUID().toString();
+                accquireLock = redisTemplate.opsForValue().setIfAbsent("lock", token, 3, TimeUnit.SECONDS);
+            }
+            if (accquireLock) {
+                AlbumInfo allInfoDB = getAllInfoFromRedis(albumId);
+                redisTemplate.opsForValue().set(cacgeKey, allInfoDB);
+                String luaScript = "if redis.call('get', KEYS{1}) == ARGV{1} then return redis.call('del', KEYS{1}) else return 0";
+                DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
+                redisScript.setScriptText(luaScript);
+                redisScript.setResultType(Long.class);
+                redisTemplate.execute(redisScript, Arrays.asList("lock"), token);
+                threadLocal.remove();
+                return allInfoDB;
+            } else {
+                while (true) {
+                    SleepUtils.millis(50);
+                    boolean retryAccquireLock = redisTemplate.opsForValue().setIfAbsent("lock", token, 3, TimeUnit.SECONDS);
+                    if (retryAccquireLock) {
+                        threadLocal.set(token);
+                        break;
+                    }
+                }
+                return getAlbumInfoFromRedisWithThreadLocal(albumId);
+            }
+        }
+        return albumInfoRedis;
     }
 
     @Override
