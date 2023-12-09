@@ -14,6 +14,7 @@
     <file url="file://$PROJECT_DIR$/tingshu_core/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/tingshu_core/tingshu_account/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/tingshu_core/tingshu_album/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tingshu_core/tingshu_search/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/tingshu_core/tingshu_user/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/tingshu_feign_client/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/tingshu_gateway/src/main/java" charset="UTF-8" />

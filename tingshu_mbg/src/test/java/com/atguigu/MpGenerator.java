@@ -12,7 +12,7 @@ public class MpGenerator {
                     builder.author("Dunston") // 设置作者
                             //.enableSwagger() // 开启 swagger 模式
                             .disableOpenDir()
-                            .outputDir("C:\\Users\\13180\\IdeaProjects\\tingshu_parent\\tingshu_core\\tingshu_album\\src\\main\\java"); // 指定输出目录
+                            .outputDir("C:\\230710\\code\\tingshu_parent\\tingshu_core\\tingshu_album\\src\\main\\java"); // 指定输出目录
                 })
                 .dataSourceConfig(builder -> builder.typeConvertHandler((globalConfig, typeRegistry, metaInfo) -> {
                     return typeRegistry.getColumnType(metaInfo);

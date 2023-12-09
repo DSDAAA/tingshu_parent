@@ -10,7 +10,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * </p>
  *
  * @author Dunston
- * @since 2023-12-01
+ * @since 2023-11-29
  */
 public interface AlbumInfoService extends IService<AlbumInfo> {
 
@@ -21,4 +21,5 @@ public interface AlbumInfoService extends IService<AlbumInfo> {
     void updateAlbumInfo(AlbumInfo albumInfo);
 
     void deleteAlbumInfo(Long albumId);
+
 }

@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * </p>
  *
  * @author Dunston
- * @since 2023-12-01
+ * @since 2023-11-29
  */
 public interface BaseCategory2Mapper extends BaseMapper<BaseCategory2> {
 

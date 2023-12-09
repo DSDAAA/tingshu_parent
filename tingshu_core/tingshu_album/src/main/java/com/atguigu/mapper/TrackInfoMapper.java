@@ -5,6 +5,7 @@ import com.atguigu.query.TrackInfoQuery;
 import com.atguigu.vo.TrackTempVo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * <p>
@@ -12,9 +13,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
  * </p>
  *
  * @author Dunston
- * @since 2023-12-01
+ * @since 2023-11-29
  */
 public interface TrackInfoMapper extends BaseMapper<TrackInfo> {
 
-    IPage<TrackTempVo> findUserTrackPage(IPage<TrackTempVo> pageParam, TrackInfoQuery trackInfoQuery);
+    IPage<TrackTempVo> findUserTrackPage(@Param("pageParam") IPage<TrackTempVo> pageParam, @Param("trackInfoQuery") TrackInfoQuery trackInfoQuery);
 }

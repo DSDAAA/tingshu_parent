@@ -1,16 +1,17 @@
 package com.atguigu.minio;
 
 import io.minio.*;
+import io.minio.errors.MinioException;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
-
 @Component
 @EnableConfigurationProperties({MinioProperties.class})
 public class MinioUploader {
@@ -19,14 +20,18 @@ public class MinioUploader {
     @Autowired
     private MinioClient minioClient;
 
+
     @SneakyThrows
     @Bean
     public MinioClient minioClient() {
+        // Create a minioClient with the MinIO server playground, its access key and secret key.
         MinioClient minioClient = MinioClient.builder()
-                .endpoint(minioProperties.getEndPoint())
+                .endpoint(minioProperties.getEndpoint())
                 .credentials(minioProperties.getAccessKey(), minioProperties.getSecretKey())
                 .build();
-        boolean found = minioClient.bucketExists(BucketExistsArgs.builder().bucket(minioProperties.getBucketName()).build());
+        //创建一个桶
+        boolean found =
+                minioClient.bucketExists(BucketExistsArgs.builder().bucket(minioProperties.getBucketName()).build());
         if (!found) {
             minioClient.makeBucket(MakeBucketArgs.builder().bucket(minioProperties.getBucketName()).build());
         } else {
@@ -36,7 +41,7 @@ public class MinioUploader {
     }
 
     public String uploadFile(MultipartFile file) throws Exception {
-        //设置储存对象名称
+        //设置存储对象名称
         String prefix = UUID.randomUUID().toString().replaceAll("-", "");
         String originalFilename = file.getOriginalFilename();
         String suffix = FilenameUtils.getExtension(originalFilename);
@@ -49,7 +54,16 @@ public class MinioUploader {
                         .stream(file.getInputStream(), file.getSize(), -1)
                         .contentType(file.getContentType())
                         .build());
-        String retUrl = minioProperties.getEndPoint() + "/" + minioProperties.getBucketName() + "/" + fileName;
+        //http://192.168.76.100:9000/tingshu/baby.jpg
+        String retUrl = minioProperties.getEndpoint() + "/" + minioProperties.getBucketName() + "/" + fileName;
         return retUrl;
+    }
+
+    public static void main(String[] args) {
+        String a = "girl.jpg";
+        String extension = FilenameUtils.getExtension(a);
+        System.out.println(extension);
+        String suffix = a.substring(a.lastIndexOf("."));
+        System.out.println(suffix);
     }
 }

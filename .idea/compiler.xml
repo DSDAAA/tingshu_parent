@@ -7,15 +7,16 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="tingshu_search" />
+        <module name="tingshu_core_utils" />
+        <module name="tingshu_album" />
+        <module name="tingshu_account" />
+        <module name="tingshu_mbg" />
         <module name="tingshu_model" />
         <module name="tingshu_user" />
         <module name="tingshu_security" />
         <module name="tingshu_feign_client" />
-        <module name="tingshu_core_utils" />
         <module name="tingshu_kafka_utils" />
-        <module name="tingshu_album" />
-        <module name="tingshu_account" />
-        <module name="tingshu_mbg" />
         <module name="tingshu_common_utils" />
         <module name="tingshu_common_log" />
         <module name="tingshu_gateway" />
@@ -36,6 +37,7 @@
       <module name="tingshu_kafka_utils" options="-parameters" />
       <module name="tingshu_mbg" options="-parameters" />
       <module name="tingshu_model" options="-parameters" />
+      <module name="tingshu_search" options="-parameters" />
       <module name="tingshu_security" options="-parameters" />
       <module name="tingshu_user" options="-parameters" />
     </option>

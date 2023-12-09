@@ -9,8 +9,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * </p>
  *
  * @author Dunston
- * @since 2023-12-01
+ * @since 2023-11-29
  */
 public interface BaseCategory1Service extends IService<BaseCategory1> {
 
+    void setNum();
 }

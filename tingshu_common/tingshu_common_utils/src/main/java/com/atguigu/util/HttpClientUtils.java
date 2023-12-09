@@ -1,4 +1,4 @@
-//package com.atguigu.tingshu.common.util;
+package com.atguigu.util;//package com.atguigu.tingshu.common.util;
 //
 //
 //import org.apache.commons.io.IOUtils;

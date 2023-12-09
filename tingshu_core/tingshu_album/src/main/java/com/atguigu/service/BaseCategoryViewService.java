@@ -12,9 +12,10 @@ import java.util.List;
  * </p>
  *
  * @author Dunston
- * @since 2023-12-01
+ * @since 2023-11-29
  */
 public interface BaseCategoryViewService extends IService<BaseCategoryView> {
 
-    List<CategoryVo> getAllCategoryList();
+
+    List<CategoryVo> getAllCategoryList(Long category1Id);
 }

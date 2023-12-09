@@ -5,6 +5,7 @@ import com.atguigu.query.AlbumInfoQuery;
 import com.atguigu.vo.AlbumTempVo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * <p>
@@ -12,9 +13,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
  * </p>
  *
  * @author Dunston
- * @since 2023-12-01
+ * @since 2023-11-29
  */
 public interface AlbumInfoMapper extends BaseMapper<AlbumInfo> {
 
-    IPage<AlbumTempVo> getUserAlbumByPage(IPage<AlbumTempVo> pageParam, AlbumInfoQuery albumInfoQuery);
+    IPage<AlbumTempVo> getUserAlbumByPage(@Param("pageParam") IPage<AlbumTempVo> pageParam, @Param("albumInfoQuery") AlbumInfoQuery albumInfoQuery);
 }

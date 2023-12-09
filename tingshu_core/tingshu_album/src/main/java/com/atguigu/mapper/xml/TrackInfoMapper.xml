@@ -4,45 +4,46 @@
 
     <select id="findUserTrackPage" resultType="com.atguigu.vo.TrackTempVo">
         select
-        any_value(d.albumId) as albumId,
-        d.albumTitle,
-        d.trackId,
-        d.trackTitle,
-        d.coverUrl,
-        d.mediaDuration,
-        d.status,
-        d.createTime,
-        MAX(IF(d.statType = '0701', d.statNum, 0)) as playStatNum,
-        MAX(IF(d.statType = '0702', d.statNum, 0)) as collectStatNUm,
-        MAX(IF(d.statType = '0703', d.statNum, 0)) as praiseStatNum,
-        MAX(IF(d.statType = '0704', d.statNum, 0)) as commentStatNum
+            any_value(d.albumId) as albumId,
+            d.albumTitle,
+            d.trackId,
+            d.trackTitle,
+            d.coverUrl,
+            d.mediaDuration,
+            d.status,
+            d.createTime,
+            MAX(IF(d.statType = '0701', d.statNum, 0)) as playStatNum,
+            MAX(IF(d.statType = '0702', d.statNum, 0)) as collectStatNum,
+            MAX(IF(d.statType = '0703', d.statNum, 0)) as praiseStatNum,
+            MAX(IF(d.statType = '0704', d.statNum, 0)) as commentStatNum
         from (SELECT
-        c.id AS albimId,
-        c.album_title AS albumTitle,
-        a.id AS trackId,
-        a.track_title AS trackTitle,
-        a.media_duration AS mediaDuration,
-        IF ( a.cover_url IS NULL OR a.cover_url = '', c.cover_url, a.cover_url, a.cover_url ) AS coverUrl,
-        a.STATUS,
-        a.create_time AS createTime,
-        b.stat_type AS statType,
-        b.stat_num AS statNum
-        FROM
-        track_info a
-        LEFT JOIN track_stat b ON a.id = b.track_id
-        LEFT JOIN talbm_info c ON a.album_id = c.id
-        <where>
-            <if test="trackInfoQuery.userId != null">and a.user_id = #{trackInfoQuery.userId}
-            </if>
-            <if test="trackInfoQuery.trackTitle != null and trackInfoQuery.trackTitle != ''">
-                and a.track_title like CONCAT('%', #{trackInfoQuery.trackTitle},'%')
-            </if>
-            <if test="trackInfoQuery.status != null and trackInfoQuery.status != ''">
-                and a.status = #{trackInfoQuery.status}
-            </if>
-            and a.is_delete = 0
-        </where>
-        ) d
+                  c.id AS albumId,
+                  c.album_title AS albumTitle,
+                  a.id AS trackId,
+                  a.track_title AS trackTitle,
+                  a.media_duration AS mediaDuration,
+                  IF ( a.cover_url IS NULL OR a.cover_url = '', c.cover_url, a.cover_url ) AS coverUrl,
+                  a.STATUS,
+                  a.create_time AS createTime,
+                  b.stat_type AS statType,
+                  b.stat_num AS statNum
+              FROM
+                  track_info a
+                  LEFT JOIN track_stat b ON a.id = b.track_id
+                  LEFT JOIN album_info c ON a.album_id = c.id
+                    <where>
+                        <if test="trackInfoQuery.userId != null">
+                            and a.user_id = #{trackInfoQuery.userId}
+                        </if>
+                        <if test="trackInfoQuery.trackTitle != null and trackInfoQuery.trackTitle != ''">
+                            and a.track_title like CONCAT('%',#{trackInfoQuery.trackTitle},'%')
+                        </if>
+                        <if test="trackInfoQuery.status != null and trackInfoQuery.status != ''">
+                            and a.status = #{trackInfoQuery.status}
+                        </if>
+                        and a.is_deleted = 0
+                    </where>
+              ) d
         GROUP BY d.trackId
         ORDER BY d.createTime
     </select>

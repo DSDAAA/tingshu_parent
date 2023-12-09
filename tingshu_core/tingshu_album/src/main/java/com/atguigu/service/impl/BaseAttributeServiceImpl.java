@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
  * </p>
  *
  * @author Dunston
- * @since 2023-12-01
+ * @since 2023-11-29
  */
 @Service
 public class BaseAttributeServiceImpl extends ServiceImpl<BaseAttributeMapper, BaseAttribute> implements BaseAttributeService {

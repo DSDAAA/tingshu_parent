@@ -1,6 +1,6 @@
 package com.atguigu.controller;
 
-import com.atguigu.constant.SystemConstant;
+import com.atguigu.cache.TingShuCache;
 import com.atguigu.entity.AlbumInfo;
 import com.atguigu.entity.BaseAttribute;
 import com.atguigu.entity.TrackInfo;
@@ -37,80 +37,78 @@ import java.util.Map;
  * </p>
  *
  * @author Dunston
- * @since 2023-12-01
+ * @since 2023-11-29
  */
-@RestController
 @Tag(name = "声音管理")
-@RequestMapping("/api/album/trackInfo")
+@RestController
+@RequestMapping(value = "/api/album/trackInfo")
 public class TrackController {
     @Autowired
     private AlbumInfoService albumInfoService;
     @Autowired
     private VodService vodService;
-    @Autowired
-    private TrackInfoService trackInfoService;
-    @Autowired
-    private TrackInfoMapper trackInfoMapper;
-
-    @TingShuLogin(required = true)
+    @TingShuLogin
     @Operation(summary = "根据用户ID查询用户的专辑信息")
     @GetMapping("findAlbumByUserId")
     public RetVal findAlbumByUserId() {
         Long userId = AuthContextHolder.getUserId();
-        LambdaQueryWrapper<AlbumInfo> albumInfoLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        albumInfoLambdaQueryWrapper.eq(AlbumInfo::getUserId, userId);
-        albumInfoLambdaQueryWrapper.select(AlbumInfo::getId, AlbumInfo::getAlbumTitle);
-        List<AlbumInfo> albumInfoList = albumInfoService.list(albumInfoLambdaQueryWrapper);
+        LambdaQueryWrapper<AlbumInfo> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(AlbumInfo::getUserId,userId);
+        wrapper.select(AlbumInfo::getId,AlbumInfo::getAlbumTitle);
+        List<AlbumInfo> albumInfoList = albumInfoService.list(wrapper);
         return RetVal.ok(albumInfoList);
     }
 
     @Operation(summary = "上传声音")
     @PostMapping("uploadTrack")
-    public RetVal uploadTrack(MultipartFile multipartFile) {
-        Map<String, Object> map = vodService.iploadTrack(multipartFile);
-        return RetVal.ok(map);
+    public RetVal uploadTrack(MultipartFile file) {
+        Map<String, Object> retMap = vodService.uploadTrack(file);
+        return RetVal.ok(retMap);
     }
 
+    @Autowired
+    private TrackInfoService trackInfoService;
     @Operation(summary = "新增声音")
+    @TingShuLogin
     @PostMapping("saveTrackInfo")
     public RetVal saveTrackInfo(@RequestBody TrackInfo trackInfo) {
         trackInfoService.saveTrackInfo(trackInfo);
-
         return RetVal.ok();
     }
 
-    @TingShuLogin(required = true)
+    @Autowired
+    private TrackInfoMapper trackInfoMapper;
+    @TingShuLogin
     @Operation(summary = "分页查询声音")
     @PostMapping("findUserTrackPage/{pageNum}/{pageSize}")
     public RetVal findUserTrackPage(
             @PathVariable Long pageNum,
             @PathVariable Long pageSize,
             @RequestBody TrackInfoQuery trackInfoQuery) {
-        Long userId = AuthContextHolder.getUserId();
-        trackInfoQuery.setUserId(userId);
+        trackInfoQuery.setUserId( AuthContextHolder.getUserId());
         IPage<TrackTempVo> pageParam = new Page<>(pageNum, pageSize);
         pageParam = trackInfoMapper.findUserTrackPage(pageParam, trackInfoQuery);
         return RetVal.ok(pageParam);
     }
-
-    @Operation(summary = "根据id查询声音信息")
-    @PostMapping("getTrackInfoById/{trackId}")
+    @TingShuCache(value = "trackInfo",enableBloom = false)
+    @Operation(summary = "根据id获取声音信息")
+    @GetMapping("getTrackInfoById/{trackId}")
     public RetVal getTrackInfoById(@PathVariable Long trackId) {
         TrackInfo trackInfo = trackInfoService.getById(trackId);
         return RetVal.ok(trackInfo);
     }
 
     @Operation(summary = "修改声音")
-    @PutMapping("updateTrackInfo/{albumId}")
-    public RetVal updateTrackInfo(@RequestBody TrackInfo trackInfo) {
+    @PutMapping("updateTrackInfoById")
+    public RetVal updateTrackInfoById(@RequestBody TrackInfo trackInfo) {
         trackInfoService.updateTrackInfoById(trackInfo);
         return RetVal.ok();
     }
-
     @Operation(summary = "删除声音")
-    @DeleteMapping("deleteTrackInfo/{albumId}")
+    @DeleteMapping("deleteTrackInfo/{trackId}")
     public RetVal deleteTrackInfo(@PathVariable Long trackId) {
         trackInfoService.deleteTrackInfo(trackId);
         return RetVal.ok();
     }
+
 }

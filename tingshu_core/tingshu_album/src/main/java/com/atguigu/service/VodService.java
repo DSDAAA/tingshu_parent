@@ -11,11 +11,11 @@ import java.util.Map;
  * </p>
  *
  * @author Dunston
- * @since 2023-12-01
+ * @since 2023-11-29
  */
 public interface VodService {
 
-    Map<String, Object> iploadTrack(MultipartFile multipartFile);
+    Map<String, Object> uploadTrack(MultipartFile file);
 
     void getTrackMediaInfo(TrackInfo trackInfo);
 

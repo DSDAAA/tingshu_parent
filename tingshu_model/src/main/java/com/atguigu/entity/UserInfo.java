@@ -36,7 +36,7 @@ public class UserInfo extends BaseEntity {
 
 	@Schema(description = "用户是否为VIP会员")
 	@TableField("is_vip")
-	private Byte isVip;
+	private Integer isVip;
 
 	@Schema(description = "当前VIP到期时间，即失效时间")
 	@TableField("vip_expire_time")

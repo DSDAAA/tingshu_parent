@@ -1,7 +1,9 @@
 package com.atguigu.controller;
 
+import com.atguigu.login.TingShuLogin;
 import com.atguigu.minio.MinioUploader;
 import com.atguigu.result.RetVal;
+import com.atguigu.util.AuthContextHolder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +19,11 @@ import org.springframework.web.multipart.MultipartFile;
  * </p>
  *
  * @author Dunston
- * @since 2023-12-01
+ * @since 2023-11-29
  */
+@Tag(name = "上传管理接口")
 @RestController
-@Tag(name = "上传管理")
-@RequestMapping("/api/album")
+@RequestMapping(value = "/api/album")
 public class FileUploadController {
     @Autowired
     private MinioUploader minioUploader;
@@ -32,4 +34,5 @@ public class FileUploadController {
         String retUrl = minioUploader.uploadFile(file);
         return RetVal.ok(retUrl);
     }
+
 }
