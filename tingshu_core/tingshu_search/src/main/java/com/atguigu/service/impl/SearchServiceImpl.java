@@ -4,26 +4,37 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.aggregations.Aggregate;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.NestedQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.TermsQueryField;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.elasticsearch.core.search.Suggester;
+import co.elastic.clients.elasticsearch.core.search.Suggestion;
 import com.alibaba.fastjson.JSONObject;
 import com.atguigu.AlbumFeignClient;
 import com.atguigu.CategoryFeignClient;
 import com.atguigu.UserFeignClient;
 import com.atguigu.entity.*;
+import com.atguigu.query.AlbumIndexQuery;
 import com.atguigu.repository.AlbumRepository;
+import com.atguigu.repository.SuggestRepository;
 import com.atguigu.service.SearchService;
+import com.atguigu.util.PinYinUtils;
+import com.atguigu.vo.AlbumInfoIndexVo;
+import com.atguigu.vo.AlbumSearchResponseVo;
 import com.atguigu.vo.UserInfoVo;
 import lombok.SneakyThrows;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.elasticsearch.core.suggest.Completion;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,6 +47,8 @@ public class SearchServiceImpl implements SearchService {
     private CategoryFeignClient categoryFeignClient;
     @Autowired
     private UserFeignClient userFeignClient;
+    @Autowired
+    private SuggestRepository suggestRepository;
 
     @Override
     public void onSaleAlbum(Long albumId) {
@@ -73,6 +86,24 @@ public class SearchServiceImpl implements SearchService {
         double hotScore = num1 * 0.2 + num2 * 0.3 + num3 * 0.4 + num4 * 0.1;
         albumInfoIndex.setHotScore(hotScore);
         albumRepository.save(albumInfoIndex);
+        //专辑自动补全的内容
+        SuggestIndex suggestIndex = new SuggestIndex();
+        suggestIndex.setId(UUID.randomUUID().toString().replaceAll("-", ""));
+        suggestIndex.setTitle(albumInfo.getAlbumTitle());
+        suggestIndex.setKeyword(new Completion(new String[]{albumInfo.getAlbumTitle()}));
+        suggestIndex.setKeywordPinyin(new Completion(new String[]{PinYinUtils.toHanyuPinyin(albumInfo.getAlbumTitle())}));
+        suggestIndex.setKeywordSequence(new Completion(new String[]{PinYinUtils.getFirstLetter(albumInfo.getAlbumTitle())}));
+
+        suggestRepository.save(suggestIndex);
+        if (StringUtils.isEmpty(albumInfoIndex.getAnnouncerName())) {
+            SuggestIndex announcerSuggestIndex = new SuggestIndex();
+            announcerSuggestIndex.setId(UUID.randomUUID().toString().replaceAll("-", ""));
+            announcerSuggestIndex.setTitle(albumInfoIndex.getAnnouncerName());
+            announcerSuggestIndex.setKeyword(new Completion(new String[]{albumInfoIndex.getAnnouncerName()}));
+            announcerSuggestIndex.setKeywordPinyin(new Completion(new String[]{PinYinUtils.toHanyuPinyin(albumInfoIndex.getAnnouncerName())}));
+            announcerSuggestIndex.setKeywordSequence(new Completion(new String[]{PinYinUtils.getFirstLetter(albumInfoIndex.getAnnouncerName())}));
+            suggestRepository.save(announcerSuggestIndex);
+        }
     }
 
     @Override
@@ -122,5 +153,166 @@ public class SearchServiceImpl implements SearchService {
             return retMap;
         }).collect(Collectors.toList());
         return topAlbumInfoIndexMapList;
+    }
+
+    @SneakyThrows
+    @Override
+    public AlbumSearchResponseVo search(AlbumIndexQuery albumIndexQuery) {
+        //1.生成DSL语句
+        SearchRequest request = buildQueryDsl(albumIndexQuery);
+        //2.实现DSL语句的调用
+        SearchResponse<AlbumInfoIndex> response = elasticsearchClient.search(request, AlbumInfoIndex.class);
+        //3.对结果进行解析
+        AlbumSearchResponseVo albumSearchResponseVo = parseSearchResult(response);
+        //4.设置其他参数
+        albumSearchResponseVo.setPageNo(albumIndexQuery.getPageNo());
+        albumSearchResponseVo.setPageSize(albumIndexQuery.getPageSize());
+        //5.设置总页数
+        long totalPages = (albumSearchResponseVo.getTotal() + albumSearchResponseVo.getPageSize() - 1) / albumSearchResponseVo.getPageSize();
+        albumSearchResponseVo.setTotalPages(totalPages);
+        return albumSearchResponseVo;
+    }
+
+    @SneakyThrows
+    @Override
+    public HashSet<String> autoCompleteSuggest(String keyword) {
+        Suggester suggester = new Suggester.Builder()
+                .suggesters("suggestionKeyword", s -> s
+                        .prefix(keyword)
+                        .completion(c -> c.field("")))
+                .suggesters("suggestionKeywordPinyin", s -> s
+                        .prefix(keyword)
+                        .completion(c -> c.field("keywordPinyin")))
+                .suggesters("suggestionKeywordSequence", s -> s
+                        .prefix(keyword)
+                        .completion(c -> c.field("keywordSequence"))).build();
+        System.out.println(suggester.toString());
+        SearchResponse<SuggestIndex> suggestResponse = elasticsearchClient.search(s -> s
+                .index("suggestinfo")
+                .suggest(suggester), SuggestIndex.class);
+        HashSet<String> suggestSet = analysisResponse(suggestResponse);
+        if (suggestSet.size() < 5) {
+            SearchResponse<SuggestIndex> searchResponse = elasticsearchClient.search(s -> s.index("suggestinfo")
+                            .size(10)
+                            .query(q -> q.match(m -> m.field("title").query(keyword)))
+                    , SuggestIndex.class);
+            List<Hit<SuggestIndex>> suggestHitList = searchResponse.hits().hits();
+            for (Hit<SuggestIndex> suggestIndexHit : suggestHitList) {
+                suggestSet.add(suggestIndexHit.source().getTitle());
+                int size = suggestSet.size();
+                //自动补全不要超过十个
+                if (size > 10) {
+                    break;
+                }
+            }
+
+        }
+        return suggestSet;
+    }
+
+    private HashSet<String> analysisResponse(SearchResponse<SuggestIndex> suggestResponse) {
+        HashSet<String> suggestSet = new HashSet<>();
+        Map<String, List<Suggestion<SuggestIndex>>> suggestMap = suggestResponse.suggest();
+        suggestMap.entrySet().stream().forEach(suggestEntry -> {
+            List<Suggestion<SuggestIndex>> suggestValueList = suggestEntry.getValue();
+            suggestValueList.forEach(suggestValue -> {
+                List<String> suggestTitleList = suggestValue.completion().options().stream()
+                        .map(m -> m.source().getTitle()).collect(Collectors.toList());
+                suggestSet.addAll(suggestTitleList);
+            });
+        });
+        return suggestSet;
+    }
+
+    private AlbumSearchResponseVo parseSearchResult(SearchResponse<AlbumInfoIndex> response) {
+        AlbumSearchResponseVo responseVo = new AlbumSearchResponseVo();
+        //获取总记录数
+        responseVo.setTotal(response.hits().total().value());
+        //获取专辑列表信息
+        List<Hit<AlbumInfoIndex>> searchAlbumInfoHit = response.hits().hits();
+        List<AlbumInfoIndexVo> albumInfoIndexVoList = new ArrayList<>();
+        for (Hit<AlbumInfoIndex> albumInfoIndexHit : searchAlbumInfoHit) {
+            AlbumInfoIndexVo albumInfoIndexVo = new AlbumInfoIndexVo();
+            BeanUtils.copyProperties(albumInfoIndexHit.source(), albumInfoIndexVo);
+            List<String> albumTitleHightList = albumInfoIndexHit.highlight().get("albumTitle");
+            if (albumTitleHightList != null) {
+                albumInfoIndexVo.setAlbumTitle(albumTitleHightList.get(0));
+            }
+            albumInfoIndexVoList.add(albumInfoIndexVo);
+        }
+        responseVo.setList(albumInfoIndexVoList);
+        return responseVo;
+    }
+
+    private SearchRequest buildQueryDsl(AlbumIndexQuery albumIndexQuery) {
+        BoolQuery.Builder boolQuery = new BoolQuery.Builder();
+        String keyword = albumIndexQuery.getKeyword();
+        if (!StringUtils.isEmpty(keyword)) {
+            boolQuery.should(s -> s.match(m -> m.field("albumTitle").query(keyword)));
+            boolQuery.should(s -> s.match(m -> m.field("albumIntro").query(keyword)));
+            boolQuery.should(s -> s.match(m -> m.field("announcerName").query(keyword)));
+        }
+        Long category1Id = albumIndexQuery.getCategory1Id();
+        if (category1Id != null) {
+            boolQuery.filter(f -> f.term(t -> t.field("category1Id").value(category1Id)));
+        }
+        Long category2Id = albumIndexQuery.getCategory2Id();
+        if (category2Id != null) {
+            boolQuery.filter(f -> f.term(t -> t.field("category2Id").value(category2Id)));
+        }
+        Long category3Id = albumIndexQuery.getCategory3Id();
+        if (category3Id != null) {
+            boolQuery.filter(f -> f.term(t -> t.field("category3Id").value(category3Id)));
+        }
+        List<String> propertyList = albumIndexQuery.getAttributeList();
+        if (!CollectionUtils.isEmpty(propertyList)) {
+            for (String property : propertyList) {
+                String[] propertySplit = property.split(":");
+                if (propertySplit != null && propertySplit.length == 2) {
+                    Query nestedQuery = NestedQuery.of(f -> f.path("attributeValueIndexList")
+                            .query(q -> q.bool(b -> b
+                                    .must(m -> m.term(t -> t.field("attributeValueIndexList.attributeId").value(propertySplit[0])))
+                                    .must(m -> m.term(t -> t.field("attributeValueIndexList.valueId").value(propertySplit[1])))
+                            )))._toQuery();
+                    boolQuery.filter(nestedQuery);
+                }
+            }
+        }
+        Query query = boolQuery.build()._toQuery();
+        Integer pageNo = albumIndexQuery.getPageNo();
+        Integer pageSize = albumIndexQuery.getPageSize();
+        SearchRequest.Builder searchRequest = new SearchRequest.Builder()
+                .index("albuminfo")
+                .query(query)
+                .from((pageNo - 1) * pageSize)
+                .size(pageSize)
+                .highlight(h -> h.fields("albumTitle", p -> p
+                        .preTags("<font color='red'>")
+                        .postTags("</font>")));
+        //构造排序
+        String order = albumIndexQuery.getOrder();
+        String orderFiled = "";
+        if (!StringUtils.isEmpty(order)) {
+            String[] orderSplit = order.split(":");
+            if (orderSplit != null && orderSplit.length == 2) {
+                switch (orderSplit[0]) {
+                    case "1":
+                        orderFiled = "hotScore";
+                        break;
+                    case "2":
+                        orderFiled = "playStatNum";
+                        break;
+                    case "3":
+                        orderFiled = "createTime";
+                        break;
+                }
+            }
+            String sortType = orderSplit[1];
+            String finalOrderFiled = orderFiled;
+            searchRequest.sort(s -> s.field(f -> f.field(finalOrderFiled)
+                    .order("asc".equals(sortType) ? SortOrder.Asc : SortOrder.Desc)));
+        }
+        SearchRequest request = searchRequest.build();
+        return request;
     }
 }

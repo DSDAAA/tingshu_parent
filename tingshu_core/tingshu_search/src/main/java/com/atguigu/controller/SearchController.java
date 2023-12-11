@@ -3,11 +3,13 @@ package com.atguigu.controller;
 import com.atguigu.query.AlbumIndexQuery;
 import com.atguigu.result.RetVal;
 import com.atguigu.service.SearchService;
+import com.atguigu.vo.AlbumSearchResponseVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -32,6 +34,7 @@ public class SearchController {
         }
         return "success";
     }
+
     @Operation(summary = "下架专辑")
     @GetMapping("offSaleAlbum/{albumId}")
     public void offSaleAlbum(@PathVariable Long albumId) {
@@ -50,7 +53,14 @@ public class SearchController {
     @Operation(summary = "专辑搜索")
     @PostMapping
     public RetVal search(AlbumIndexQuery albumIndexQuery) {
-        return RetVal.ok();
+        AlbumSearchResponseVo albumSearchResponseVo = searchService.search(albumIndexQuery);
+        return RetVal.ok(albumSearchResponseVo);
     }
 
+    @Operation(summary = "关键字自动补全")
+    @GetMapping("autoCompleteSuggest/{keyword}")
+    public RetVal autoCompleteSuggest(@PathVariable String keyword) {
+        HashSet<String> suggestSet = searchService.autoCompleteSuggest(keyword);
+        return RetVal.ok(suggestSet);
+    }
 }

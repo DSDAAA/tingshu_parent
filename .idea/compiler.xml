@@ -8,10 +8,10 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="tingshu_search" />
-        <module name="tingshu_core_utils" />
-        <module name="tingshu_album" />
-        <module name="tingshu_account" />
         <module name="tingshu_mbg" />
+        <module name="tingshu_core_utils" />
+        <module name="tingshu_account" />
+        <module name="tingshu_album" />
         <module name="tingshu_model" />
         <module name="tingshu_user" />
         <module name="tingshu_security" />
@@ -22,6 +22,9 @@
         <module name="tingshu_gateway" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="untitled" target="17" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
@@ -40,6 +43,7 @@
       <module name="tingshu_search" options="-parameters" />
       <module name="tingshu_security" options="-parameters" />
       <module name="tingshu_user" options="-parameters" />
+      <module name="untitled" options="-parameters" />
     </option>
   </component>
 </project>
