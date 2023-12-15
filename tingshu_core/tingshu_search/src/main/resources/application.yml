@@ -71,3 +71,6 @@ thread:
     maximum-pool-size: 32
     keep-alive-time: 50
     queue-length: 100
+logging:
+  level:
+    com.atguigu: DEBUG

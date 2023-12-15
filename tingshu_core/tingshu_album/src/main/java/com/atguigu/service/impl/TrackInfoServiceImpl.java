@@ -10,7 +10,9 @@ import com.atguigu.service.TrackInfoService;
 import com.atguigu.service.TrackStatService;
 import com.atguigu.service.VodService;
 import com.atguigu.util.AuthContextHolder;
+import com.atguigu.vo.TrackTempVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -85,6 +87,12 @@ public class TrackInfoServiceImpl extends ServiceImpl<TrackInfoMapper, TrackInfo
         trackStatService.remove(new LambdaQueryWrapper<TrackStat>().eq(TrackStat::getTrackId,trackId));
         //删除声音
         vodService.removeTrack(trackInfo.getMediaFileId());
+    }
+
+    @Override
+    public IPage<TrackTempVo> getAlbumDetailTrackByPage(IPage<TrackTempVo> pageParam, Long albumId) {
+
+        return null;
     }
 
     private List<TrackStat> buildTrackStatData(Long trackId) {

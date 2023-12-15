@@ -5,6 +5,7 @@ import com.atguigu.entity.AlbumInfo;
 import com.atguigu.entity.BaseAttribute;
 import com.atguigu.login.TingShuLogin;
 import com.atguigu.mapper.AlbumInfoMapper;
+import com.atguigu.mapper.AlbumStatMapper;
 import com.atguigu.mapper.BaseAttributeMapper;
 import com.atguigu.query.AlbumInfoQuery;
 import com.atguigu.result.RetVal;
@@ -12,6 +13,7 @@ import com.atguigu.service.AlbumAttributeValueService;
 import com.atguigu.service.AlbumInfoService;
 import com.atguigu.service.BaseCategoryViewService;
 import com.atguigu.util.AuthContextHolder;
+import com.atguigu.vo.AlbumStatVo;
 import com.atguigu.vo.AlbumTempVo;
 import com.atguigu.vo.CategoryVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -98,4 +100,24 @@ public class AlbumController {
         List<AlbumAttributeValue> attributeValueList = albumPropertyValueService.list(wrapper);
         return attributeValueList;
     }
+    /**以下内容属于专辑详情板块 **/
+    @Autowired
+    private AlbumStatMapper albumStatMapper;
+
+    @Operation(summary = "获取专辑统计信息")
+    @GetMapping("getAlbumStatInfo/{albumId}")
+    public AlbumStatVo getAlbumStatInfo(@PathVariable Long albumId) {
+        AlbumStatVo albumStatVo=albumStatMapper.getAlbumStatInfo(albumId);
+        return albumStatVo;
+    }
+
+    //http://127.0.0.1/api/album/albumInfo/isSubscribe/139
+    @TingShuLogin
+    @Operation(summary = "是否订阅")
+    @GetMapping("isSubscribe/{albumId}")
+    public RetVal isSubscribe(@PathVariable Long albumId) {
+        boolean flag=albumInfoService.isSubscribe(albumId);
+        return RetVal.ok(flag);
+    }
+
 }

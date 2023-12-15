@@ -19,13 +19,10 @@ public class SuggestIndex {
 
     @Field(type = FieldType.Text, analyzer = "standard")
     private String title;
-
     @CompletionField(analyzer = "standard", searchAnalyzer = "standard", maxInputLength = 20)
     private Completion keyword;
-
     @CompletionField(analyzer = "standard", searchAnalyzer = "standard", maxInputLength = 20)
     private Completion keywordPinyin;
-
     @CompletionField(analyzer = "standard", searchAnalyzer = "standard", maxInputLength = 20)
     private Completion keywordSequence;
 

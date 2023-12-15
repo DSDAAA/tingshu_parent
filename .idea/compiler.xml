@@ -8,10 +8,10 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="tingshu_search" />
-        <module name="tingshu_mbg" />
         <module name="tingshu_core_utils" />
         <module name="tingshu_account" />
         <module name="tingshu_album" />
+        <module name="tingshu_mbg" />
         <module name="tingshu_model" />
         <module name="tingshu_user" />
         <module name="tingshu_security" />

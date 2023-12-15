@@ -17,4 +17,6 @@ public interface SearchService {
     AlbumSearchResponseVo search(AlbumIndexQuery albumIndexQuery);
 
     HashSet<String> autoCompleteSuggest(String keyword);
+
+    Map<String, Object> getAlbumDetail(Long albumId);
 }

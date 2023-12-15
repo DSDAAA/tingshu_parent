@@ -111,4 +111,19 @@ public class TrackController {
         return RetVal.ok();
     }
 
+    //http://127.0.0.1/api/album/trackInfo/getAlbumDetailTrackByPage/139/1/10
+    /**
+     * 以下内容属于专辑详情板块
+     **/
+    @Operation(summary = "分页查询声音")
+    @GetMapping("getAlbumDetailTrackByPage/{albumId}/{pageNum}/{pageSize}")
+    public RetVal getAlbumDetailTrackByPage(
+            @PathVariable Long albumId,
+            @PathVariable Long pageNum,
+            @PathVariable Long pageSize) {
+        IPage<TrackTempVo> pageParam = new Page<>(pageNum, pageSize);
+        pageParam = trackInfoService.getAlbumDetailTrackByPage(pageParam,albumId);
+        return RetVal.ok(pageParam);
+    }
+
 }

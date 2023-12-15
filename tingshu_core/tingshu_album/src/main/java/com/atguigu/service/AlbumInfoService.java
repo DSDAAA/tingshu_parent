@@ -22,4 +22,5 @@ public interface AlbumInfoService extends IService<AlbumInfo> {
 
     void deleteAlbumInfo(Long albumId);
 
+    boolean isSubscribe(Long albumId);
 }

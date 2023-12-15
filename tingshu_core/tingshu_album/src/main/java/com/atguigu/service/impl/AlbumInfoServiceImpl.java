@@ -14,6 +14,7 @@ import com.atguigu.service.AlbumInfoService;
 import com.atguigu.service.AlbumStatService;
 import com.atguigu.service.KafkaService;
 import com.atguigu.util.AuthContextHolder;
+import com.atguigu.util.MongoUtil;
 import com.atguigu.util.SleepUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -22,6 +23,9 @@ import org.redisson.api.RBloomFilter;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
@@ -236,6 +240,19 @@ public class AlbumInfoServiceImpl extends ServiceImpl<AlbumInfoMapper, AlbumInfo
         //TODO 还有其他事情要做
         //searchFeignClient.offSaleAlbum(albumId);
         kafkaService.sendMessage(KafkaConstant.OFFSALE_ALBUM_QUEUE,String.valueOf(albumId));
+    }
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
+    @Override
+    public boolean isSubscribe(Long albumId) {
+        //db.createCollection("userSubscribe_14")
+        //db.userSubscribe_14.insertOne({userId:'14',albumId:'139'})
+        Long userId = AuthContextHolder.getUserId();
+        Query query = Query.query(Criteria.where("userId").is(userId).and("albumId").is(albumId));
+        long count = mongoTemplate.count(query, MongoUtil.getCollectionName(MongoUtil.MongoCollectionEnum.USER_SUBSCRIBE, userId));
+        if(count>0) return true;
+        return false;
     }
 
     private List<AlbumStat> buildAlbumStatData(Long albumId) {
