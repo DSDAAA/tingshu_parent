@@ -1,6 +1,8 @@
 package com.atguigu.controller;
 
+import com.atguigu.constant.RedisConstant;
 import com.atguigu.entity.AlbumAttributeValue;
+import com.atguigu.entity.AlbumInfoIndex;
 import com.atguigu.query.AlbumIndexQuery;
 import com.atguigu.result.RetVal;
 import com.atguigu.service.SearchService;
@@ -10,6 +12,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashSet;
@@ -86,4 +89,15 @@ public class SearchController {
         searchService.updateRanking();
         return RetVal.ok();
     }
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    @Operation(summary = "获取排行榜列表")
+    @GetMapping("getRankingList/{category1Id}/{rankingType}")
+    public RetVal getRankingList(@PathVariable Long category1Id, @PathVariable String rankingType) {
+        List<AlbumInfoIndex> albumList = (List<AlbumInfoIndex>) redisTemplate.boundHashOps(RedisConstant.RANKING_KEY_PREFIX + category1Id).get(rankingType);
+        return RetVal.ok(albumList);
+    }
+
 }

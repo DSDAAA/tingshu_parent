@@ -283,6 +283,8 @@ public class SearchServiceImpl implements SearchService {
                 for (String rankingType : rankingTypeList) {
                     SearchResponse<AlbumInfoIndex> response = elasticsearchClient.search(s -> s
                             .index("albuminfo")
+                            .query(q -> q.bool(b -> b.filter(f -> f.term(
+                                    t -> t.field("category1Id").value(category1.getId())))))
                             .size(10)
                             .sort(t -> t.field(xs -> xs.field("playStatNum").order(SortOrder.Desc))), AlbumInfoIndex.class);
                     ArrayList<AlbumInfoIndex> albumInfoIndices = new ArrayList<>();
