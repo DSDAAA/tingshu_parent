@@ -17,6 +17,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.atguigu.AlbumFeignClient;
 import com.atguigu.CategoryFeignClient;
 import com.atguigu.UserFeignClient;
+import com.atguigu.constant.RedisConstant;
 import com.atguigu.entity.*;
 import com.atguigu.query.AlbumIndexQuery;
 import com.atguigu.repository.AlbumRepository;
@@ -32,6 +33,7 @@ import lombok.SneakyThrows;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.suggest.Completion;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -214,7 +216,8 @@ public class SearchServiceImpl implements SearchService {
         }
         return suggestSet;
     }
-//    @Autowired
+
+    //    @Autowired
 //    public ThreadPoolExecutor myPoolExecutor;
 //    @Override
 //    public Map<String, Object> getAlbumDetail(Long albumId) {
@@ -254,18 +257,47 @@ public class SearchServiceImpl implements SearchService {
         Map<String, Object> retMap = new HashMap<>();
         //a.专辑基本信息 已写
         AlbumInfo albumInfo = albumFeignClient.getAlbumInfoById(albumId).getData();
-        retMap.put("albumInfo",albumInfo);
+        retMap.put("albumInfo", albumInfo);
         //b.专辑统计信息 未写
         AlbumStatVo albumStatInfo = albumFeignClient.getAlbumStatInfo(albumId);
-        retMap.put("albumStatVo",albumStatInfo);
+        retMap.put("albumStatVo", albumStatInfo);
         //c.专辑分类信息 已写
         BaseCategoryView categoryView = categoryFeignClient.getCategoryView(albumInfo.getCategory3Id());
-        retMap.put("baseCategoryView",categoryView);
+        retMap.put("baseCategoryView", categoryView);
         //d.用户基本信息 已写
         UserInfoVo userInfoVo = userFeignClient.getUserById(albumInfo.getUserId()).getData();
-        retMap.put("announcer",userInfoVo);
+        retMap.put("announcer", userInfoVo);
         return retMap;
     }
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    @SneakyThrows
+    @Override
+    public void updateRanking() {
+        List<BaseCategory1> category1List = categoryFeignClient.getCategory1();
+        if (!CollectionUtils.isEmpty(category1List)) {
+            for (BaseCategory1 category1 : category1List) {
+                String[] rankingTypeList = new String[]{"hotScore", "playStatNum", "subscribeStatNum", "buyStatNum", "commentStatNum"};
+                for (String rankingType : rankingTypeList) {
+                    SearchResponse<AlbumInfoIndex> response = elasticsearchClient.search(s -> s
+                            .index("albuminfo")
+                            .size(10)
+                            .sort(t -> t.field(xs -> xs.field("playStatNum").order(SortOrder.Desc))), AlbumInfoIndex.class);
+                    ArrayList<AlbumInfoIndex> albumInfoIndices = new ArrayList<>();
+                    response.hits().hits().stream().forEach(hit -> {
+                        AlbumInfoIndex albumInfoIndex = hit.source();
+                        albumInfoIndices.add(albumInfoIndex);
+                    });
+                    //将排行榜西南西放到redis中
+                    redisTemplate.boundHashOps(RedisConstant.RANKING_KEY_PREFIX + "").put(rankingType, albumInfoIndices);
+                }
+            }
+        }
+
+    }
+
 //    @Override
 //    public Map<String, Object> getAlbumDetail(Long albumId) {
 //        Map<String, Object> retMap = new HashMap<>();

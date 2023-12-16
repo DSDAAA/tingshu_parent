@@ -19,4 +19,6 @@ public interface SearchService {
     HashSet<String> autoCompleteSuggest(String keyword);
 
     Map<String, Object> getAlbumDetail(Long albumId);
+
+    void updateRanking();
 }

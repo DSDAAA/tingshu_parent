@@ -16,6 +16,7 @@ import com.atguigu.service.TrackInfoService;
 import com.atguigu.service.VodService;
 import com.atguigu.util.AuthContextHolder;
 import com.atguigu.vo.AlbumTempVo;
+import com.atguigu.vo.AlbumTrackListVo;
 import com.atguigu.vo.CategoryVo;
 import com.atguigu.vo.TrackTempVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -47,14 +48,15 @@ public class TrackController {
     private AlbumInfoService albumInfoService;
     @Autowired
     private VodService vodService;
+
     @TingShuLogin
     @Operation(summary = "根据用户ID查询用户的专辑信息")
     @GetMapping("findAlbumByUserId")
     public RetVal findAlbumByUserId() {
         Long userId = AuthContextHolder.getUserId();
         LambdaQueryWrapper<AlbumInfo> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(AlbumInfo::getUserId,userId);
-        wrapper.select(AlbumInfo::getId,AlbumInfo::getAlbumTitle);
+        wrapper.eq(AlbumInfo::getUserId, userId);
+        wrapper.select(AlbumInfo::getId, AlbumInfo::getAlbumTitle);
         List<AlbumInfo> albumInfoList = albumInfoService.list(wrapper);
         return RetVal.ok(albumInfoList);
     }
@@ -68,6 +70,7 @@ public class TrackController {
 
     @Autowired
     private TrackInfoService trackInfoService;
+
     @Operation(summary = "新增声音")
     @TingShuLogin
     @PostMapping("saveTrackInfo")
@@ -78,6 +81,7 @@ public class TrackController {
 
     @Autowired
     private TrackInfoMapper trackInfoMapper;
+
     @TingShuLogin
     @Operation(summary = "分页查询声音")
     @PostMapping("findUserTrackPage/{pageNum}/{pageSize}")
@@ -85,12 +89,13 @@ public class TrackController {
             @PathVariable Long pageNum,
             @PathVariable Long pageSize,
             @RequestBody TrackInfoQuery trackInfoQuery) {
-        trackInfoQuery.setUserId( AuthContextHolder.getUserId());
+        trackInfoQuery.setUserId(AuthContextHolder.getUserId());
         IPage<TrackTempVo> pageParam = new Page<>(pageNum, pageSize);
         pageParam = trackInfoMapper.findUserTrackPage(pageParam, trackInfoQuery);
         return RetVal.ok(pageParam);
     }
-    @TingShuCache(value = "trackInfo",enableBloom = false)
+
+    @TingShuCache(value = "trackInfo", enableBloom = false)
     @Operation(summary = "根据id获取声音信息")
     @GetMapping("getTrackInfoById/{trackId}")
     public RetVal getTrackInfoById(@PathVariable Long trackId) {
@@ -104,6 +109,7 @@ public class TrackController {
         trackInfoService.updateTrackInfoById(trackInfo);
         return RetVal.ok();
     }
+
     @Operation(summary = "删除声音")
     @DeleteMapping("deleteTrackInfo/{trackId}")
     public RetVal deleteTrackInfo(@PathVariable Long trackId) {
@@ -112,17 +118,19 @@ public class TrackController {
     }
 
     //http://127.0.0.1/api/album/trackInfo/getAlbumDetailTrackByPage/139/1/10
+
     /**
      * 以下内容属于专辑详情板块
      **/
+    @TingShuLogin
     @Operation(summary = "分页查询声音")
     @GetMapping("getAlbumDetailTrackByPage/{albumId}/{pageNum}/{pageSize}")
     public RetVal getAlbumDetailTrackByPage(
             @PathVariable Long albumId,
             @PathVariable Long pageNum,
             @PathVariable Long pageSize) {
-        IPage<TrackTempVo> pageParam = new Page<>(pageNum, pageSize);
-        pageParam = trackInfoService.getAlbumDetailTrackByPage(pageParam,albumId);
+        IPage<AlbumTrackListVo> pageParam = new Page<>(pageNum, pageSize);
+        pageParam = trackInfoService.getAlbumDetailTrackByPage(pageParam, albumId);
         return RetVal.ok(pageParam);
     }
 
