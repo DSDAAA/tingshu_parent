@@ -64,16 +64,16 @@ public class SearchServiceImpl implements SearchService {
         //根据albumId查询albumInfo信息 已写
         AlbumInfo albumInfo = albumFeignClient.getAlbumInfoById(albumId).getData();
         BeanUtils.copyProperties(albumInfo, albumInfoIndex);
-        //根据albumId查询专辑属性值 未写
-        List<AlbumAttributeValue> albumPropertyValueList = albumFeignClient.getAlbumPropertyValue(albumId);
-        if (!CollectionUtils.isEmpty(albumPropertyValueList)) {
-            List<AttributeValueIndex> valueIndexList = albumPropertyValueList.stream().map(albumPropertyValue -> {
-                AttributeValueIndex attributeValueIndex = new AttributeValueIndex();
-                BeanUtils.copyProperties(albumPropertyValue, attributeValueIndex);
-                return attributeValueIndex;
-            }).collect(Collectors.toList());
-            albumInfoIndex.setAttributeValueIndexList(valueIndexList);
-        }
+        //根据albumId查询专辑属性值 不用写
+//        List<AlbumAttributeValue> albumPropertyValueList = albumFeignClient.getAlbumPropertyValue(albumId);
+//        if (!CollectionUtils.isEmpty(albumPropertyValueList)) {
+//            List<AttributeValueIndex> valueIndexList = albumPropertyValueList.stream().map(albumPropertyValue -> {
+//                AttributeValueIndex attributeValueIndex = new AttributeValueIndex();
+//                BeanUtils.copyProperties(albumPropertyValue, attributeValueIndex);
+//                return attributeValueIndex;
+//            }).collect(Collectors.toList());
+//            albumInfoIndex.setAttributeValueIndexList(valueIndexList);
+//        }
         //根据三级分类id查询专辑的分类信息 未写
         BaseCategoryView categoryView = categoryFeignClient.getCategoryView(albumInfo.getCategory3Id());
         albumInfoIndex.setCategory1Id(categoryView.getCategory1Id());
@@ -277,29 +277,29 @@ public class SearchServiceImpl implements SearchService {
     @Override
     public void updateRanking() {
         List<BaseCategory1> category1List = categoryFeignClient.getCategory1();
-        if (!CollectionUtils.isEmpty(category1List)) {
+        if(!CollectionUtils.isEmpty(category1List)){
             for (BaseCategory1 category1 : category1List) {
+                //统计维度：热度:hotScore、播放量:playStatNum、订阅量:subscribeStatNum、购买量:buyStatNum、评论数:albumCommentStatNum
                 String[] rankingTypeList = new String[]{"hotScore", "playStatNum", "subscribeStatNum", "buyStatNum", "commentStatNum"};
                 for (String rankingType : rankingTypeList) {
                     SearchResponse<AlbumInfoIndex> response = elasticsearchClient.search(s -> s
-                            .index("albuminfo")
-                            .query(q -> q.bool(b -> b.filter(f -> f.term(
-                                    t -> t.field("category1Id").value(category1.getId())))))
-                            .size(10)
-                            .sort(t -> t.field(xs -> xs.field("playStatNum").order(SortOrder.Desc))), AlbumInfoIndex.class);
-                    ArrayList<AlbumInfoIndex> albumInfoIndices = new ArrayList<>();
+                                    .index("albuminfo")
+                                    .query(q->q.bool(b->b.filter(f->f.term(
+                                            t->t.field("category1Id").value(category1.getId())))))
+                                    .size(10)
+                                    .sort(t -> t.field(xs -> xs.field(rankingType).order(SortOrder.Desc)))
+                            , AlbumInfoIndex.class);
+                    ArrayList<AlbumInfoIndex> albumList = new ArrayList<>();
                     response.hits().hits().stream().forEach(hit -> {
                         AlbumInfoIndex albumInfoIndex = hit.source();
-                        albumInfoIndices.add(albumInfoIndex);
+                        albumList.add(albumInfoIndex);
                     });
-                    //将排行榜西南西放到redis中
-                    redisTemplate.boundHashOps(RedisConstant.RANKING_KEY_PREFIX + "").put(rankingType, albumInfoIndices);
+                    //将排行榜信息放到redis中
+                    redisTemplate.boundHashOps(RedisConstant.RANKING_KEY_PREFIX + category1.getId()).put(rankingType, albumList);
                 }
             }
         }
-
     }
-
 //    @Override
 //    public Map<String, Object> getAlbumDetail(Long albumId) {
 //        Map<String, Object> retMap = new HashMap<>();

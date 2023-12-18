@@ -261,8 +261,8 @@ public class AlbumInfoServiceImpl extends ServiceImpl<AlbumInfoMapper, AlbumInfo
 
     @Override
     public List<AlbumTempVo> getAlbumTempList(List<Long> albumIdList) {
-        List<AlbumInfo> albumInfos = listByIds(albumIdList);
-        return albumInfos.stream().map(albumInfo -> {
+        List<AlbumInfo> albumInfoList = listByIds(albumIdList);
+        return albumInfoList.stream().map(albumInfo -> {
             AlbumTempVo albumTempVo = new AlbumTempVo();
             BeanUtils.copyProperties(albumInfo, albumTempVo);
             albumTempVo.setAlbumId(albumInfo.getId());

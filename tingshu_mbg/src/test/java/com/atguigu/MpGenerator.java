@@ -5,14 +5,14 @@ import com.baomidou.mybatisplus.generator.FastAutoGenerator;
 public class MpGenerator {
     //具体设置 https://blog.csdn.net/cx19910829/article/details/126889724
     public static void main(String[] args) {
-        FastAutoGenerator.create("jdbc:mysql://192.168.76.100:3316/tingshu_album?serverTimezone=GMT%2B8",
+        FastAutoGenerator.create("jdbc:mysql://192.168.76.100:3316/tingshu_order?serverTimezone=GMT%2B8",
                         "root",
                         "123")
                 .globalConfig(builder -> {
                     builder.author("Dunston") // 设置作者
                             //.enableSwagger() // 开启 swagger 模式
                             .disableOpenDir()
-                            .outputDir("C:\\230710\\code\\tingshu_parent\\tingshu_core\\tingshu_album\\src\\main\\java"); // 指定输出目录
+                            .outputDir("C:\\230710\\code\\tingshu_parent\\tingshu_core\\tingshu_order\\src\\main\\java"); // 指定输出目录
                 })
                 .dataSourceConfig(builder -> builder.typeConvertHandler((globalConfig, typeRegistry, metaInfo) -> {
                     return typeRegistry.getColumnType(metaInfo);
@@ -24,9 +24,7 @@ public class MpGenerator {
                 })
 
                 .strategyConfig(builder -> {
-                    builder.addInclude("album_info", "album_stat", "base_attribute", "base_category_view",
-                            "album_attribute_value", "base_attribute_value", "base_category1", "base_category2",
-                            "base_category3", "track_info", "track_stat");// 设置需要生成的表名
+                    builder.addInclude("order_info","order_detail","order_reduction");// 设置需要生成的表名
                     builder.serviceBuilder().formatServiceFileName("%sService");
                     builder.controllerBuilder().enableRestStyle();
                     builder.entityBuilder()

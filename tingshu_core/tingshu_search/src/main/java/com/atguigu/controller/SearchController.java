@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +41,6 @@ public class SearchController {
         }
         return "success";
     }
-
     @Operation(summary = "下架专辑")
     @GetMapping("offSaleAlbum/{albumId}")
     public void offSaleAlbum(@PathVariable Long albumId) {
@@ -59,10 +59,9 @@ public class SearchController {
     @Operation(summary = "专辑搜索") //搜索古典 西方
     @PostMapping
     public RetVal search(@RequestBody AlbumIndexQuery albumIndexQuery) {
-        AlbumSearchResponseVo searchResponseVo = searchService.search(albumIndexQuery);
+        AlbumSearchResponseVo searchResponseVo=searchService.search(albumIndexQuery);
         return RetVal.ok(searchResponseVo);
     }
-
     //http://127.0.0.1/api/search/albumInfo/autoCompleteSuggest/%E5%8F%A4%E5%85%B8%E5%B0%8F
     @Operation(summary = "关键字自动补全")
     @GetMapping("autoCompleteSuggest/{keyword}")
@@ -72,10 +71,7 @@ public class SearchController {
     }
 
     //http://127.0.0.1/api/search/albumInfo/getAlbumDetail/139
-
-    /**
-     * 以下内容属于专辑详情
-     **/
+    /**以下内容属于专辑详情 **/
     @Operation(summary = "获取专辑详情信息")
     @GetMapping("getAlbumDetail/{albumId}")
     public RetVal getAlbumDetail(@PathVariable Long albumId) {
@@ -89,14 +85,12 @@ public class SearchController {
         searchService.updateRanking();
         return RetVal.ok();
     }
-
     @Autowired
     private RedisTemplate redisTemplate;
-
     @Operation(summary = "获取排行榜列表")
     @GetMapping("getRankingList/{category1Id}/{rankingType}")
-    public RetVal getRankingList(@PathVariable Long category1Id, @PathVariable String rankingType) {
-        List<AlbumInfoIndex> albumList = (List<AlbumInfoIndex>) redisTemplate.boundHashOps(RedisConstant.RANKING_KEY_PREFIX + category1Id).get(rankingType);
+    public RetVal getRankingList(@PathVariable Long category1Id,@PathVariable String rankingType) {
+        List<AlbumInfoIndex> albumList = (List<AlbumInfoIndex>)redisTemplate.boundHashOps(RedisConstant.RANKING_KEY_PREFIX + category1Id).get(rankingType);
         return RetVal.ok(albumList);
     }
 

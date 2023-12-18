@@ -28,14 +28,13 @@ public class AlbumConsumer {
     private RedisTemplate redisTemplate;
     @Autowired
     private TrackInfoService trackInfoService;
-
     @KafkaListener(topics = KafkaConstant.UPDATE_TRACK_STAT_QUEUE)
     public void updateStat(String dataJson) {
         TrackStatMqVo trackStatMqVo = JSON.parseObject(dataJson, TrackStatMqVo.class);
-        String businessNo = trackStatMqVo.getBusinessNo();
+        String key = trackStatMqVo.getBusinessNo();
         //防止重复消费
-        Boolean isExists = redisTemplate.opsForValue().setIfAbsent(businessNo, 1, 20, TimeUnit.SECONDS);
-        if (isExists) {
+        Boolean isExist = redisTemplate.opsForValue().setIfAbsent(key, 1, 20, TimeUnit.SECONDS);
+        if (isExist) {
             String statType = trackStatMqVo.getStatType();
             LambdaQueryWrapper<TrackStat> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(TrackStat::getTrackId, trackStatMqVo.getTarckId());
@@ -45,12 +44,13 @@ public class AlbumConsumer {
             trackStatService.updateById(trackStat);
             if (statType.equals(SystemConstant.PLAY_NUM_TRACK)) {
                 //更新专辑播放量
-                LambdaQueryWrapper<AlbumStat> albumStatLambdaQueryWrapper = new LambdaQueryWrapper<>();
-                albumStatLambdaQueryWrapper.eq(AlbumStat::getAlbumId, trackStatMqVo.getAlbumId());
-                albumStatLambdaQueryWrapper.eq(AlbumStat::getStatType, SystemConstant.PLAY_NUM_ALBUM);
-                AlbumStat albumStat = albumStatService.getOne(albumStatLambdaQueryWrapper);
+                LambdaQueryWrapper<AlbumStat> albumWrapper = new LambdaQueryWrapper<>();
+                albumWrapper.eq(AlbumStat::getAlbumId, trackStatMqVo.getAlbumId());
+                albumWrapper.eq(AlbumStat::getStatType, SystemConstant.PLAY_NUM_ALBUM);
+                AlbumStat albumStat = albumStatService.getOne(albumWrapper);
                 albumStat.setStatNum(albumStat.getStatNum() + trackStatMqVo.getCount());
                 albumStatService.updateById(albumStat);
+                //更新ES里面的播放量信息--作业
             }
         }
     }

@@ -3,7 +3,6 @@ package com.atguigu.service;
 import com.atguigu.entity.UserInfo;
 import com.baomidou.mybatisplus.extension.service.IService;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 

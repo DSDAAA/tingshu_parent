@@ -34,20 +34,17 @@ public class ConcurentController {
     private BaseCategory1Service category1Service;
     @Autowired
     private AlbumInfoService albumInfoService;
-
     @Operation(summary = "例子")
     @GetMapping("setNum")
-    public String setNum() {
+    public String setNum()  {
         category1Service.setNum();
         return "success";
     }
-
     @Autowired
     private RBloomFilter bloomFilter;
-
     @Operation(summary = "初始化布隆过滤器")
     @GetMapping("init")
-    public String init() {
+    public String init()  {
         //查询数据库里面专辑的id
         LambdaQueryWrapper<AlbumInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.select(AlbumInfo::getId);
@@ -61,7 +58,7 @@ public class ConcurentController {
     }
 
     @GetMapping("hello")
-    public String sayHello() {
+    public String sayHello(){
         return "success";
     }
 

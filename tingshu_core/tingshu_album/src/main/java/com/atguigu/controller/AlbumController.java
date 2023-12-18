@@ -82,7 +82,6 @@ public class AlbumController {
         albumInfoService.updateAlbumInfo(albumInfo);
         return RetVal.ok();
     }
-
     @Operation(summary = "删除专辑")
     @DeleteMapping("deleteAlbumInfo/{albumId}")
     public RetVal deleteAlbumInfo(@PathVariable Long albumId) {
@@ -92,29 +91,23 @@ public class AlbumController {
 
     @Autowired
     private AlbumAttributeValueService albumPropertyValueService;
-
-    /**
-     * 以下内容属于搜索板块
-     **/
+    /**以下内容属于搜索板块 **/
     @Operation(summary = "根据albumId查询专辑属性值")
     @GetMapping("getAlbumPropertyValue/{albumId}")
     public List<AlbumAttributeValue> getAlbumPropertyValue(@PathVariable Long albumId) {
         LambdaQueryWrapper<AlbumAttributeValue> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(AlbumAttributeValue::getAlbumId, albumId);
+        wrapper.eq(AlbumAttributeValue::getAlbumId,albumId);
         List<AlbumAttributeValue> attributeValueList = albumPropertyValueService.list(wrapper);
         return attributeValueList;
     }
-
-    /**
-     * 以下内容属于专辑详情板块
-     **/
+    /**以下内容属于专辑详情板块 **/
     @Autowired
     private AlbumStatMapper albumStatMapper;
 
     @Operation(summary = "获取专辑统计信息")
     @GetMapping("getAlbumStatInfo/{albumId}")
     public AlbumStatVo getAlbumStatInfo(@PathVariable Long albumId) {
-        AlbumStatVo albumStatVo = albumStatMapper.getAlbumStatInfo(albumId);
+        AlbumStatVo albumStatVo=albumStatMapper.getAlbumStatInfo(albumId);
         return albumStatVo;
     }
 
@@ -123,7 +116,7 @@ public class AlbumController {
     @Operation(summary = "是否订阅")
     @GetMapping("isSubscribe/{albumId}")
     public RetVal isSubscribe(@PathVariable Long albumId) {
-        boolean flag = albumInfoService.isSubscribe(albumId);
+        boolean flag=albumInfoService.isSubscribe(albumId);
         return RetVal.ok(flag);
     }
 

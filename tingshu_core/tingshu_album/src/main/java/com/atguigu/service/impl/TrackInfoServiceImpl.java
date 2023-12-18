@@ -23,10 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -45,8 +43,6 @@ public class TrackInfoServiceImpl extends ServiceImpl<TrackInfoMapper, TrackInfo
     private AlbumInfoService albumInfoService;
     @Autowired
     private TrackStatService trackStatService;
-    @Autowired
-    private UserFeignClient userFeignClient;
 
     @Transactional
     @Override
@@ -100,29 +96,37 @@ public class TrackInfoServiceImpl extends ServiceImpl<TrackInfoMapper, TrackInfo
         vodService.removeTrack(trackInfo.getMediaFileId());
     }
 
+    @Autowired
+    private UserFeignClient userFeignClient;
+
     @Override
     public IPage<AlbumTrackListVo> getAlbumDetailTrackByPage(IPage<AlbumTrackListVo> pageParam, Long albumId) {
         pageParam = baseMapper.getAlbumTrackAndStatInfo(pageParam, albumId);
-        List<AlbumTrackListVo> albumTrackListVoList = pageParam.getRecords();
+        List<AlbumTrackListVo> albumTrackVoList = pageParam.getRecords();
         AlbumInfo albumInfo = albumInfoService.getById(albumId);
         Long userId = AuthContextHolder.getUserId();
+        //如果用户没有登录
         if (userId == null) {
             //不是免费的
-            if (SystemConstant.FREE_ALBUM.equals(albumInfo.getPayType())) {
-                albumTrackListVoList.stream().filter(f -> f.getOrderNum().intValue() > albumInfo.getTracksForFree().intValue())
+            if (!SystemConstant.FREE_ALBUM.equals(albumInfo.getPayType())) {
+                //获取付费的声音列表
+                List<AlbumTrackListVo> albumTrackNeedPayList = albumTrackVoList.stream().filter(f -> f.getOrderNum()
+                                .intValue() > albumInfo.getTracksForFree().intValue())
                         .collect(Collectors.toList());
-                if (!CollectionUtils.isEmpty(albumTrackListVoList)) {
-                    albumTrackListVoList.forEach(f -> f.setIsShowPaidMark(true));
+                if (!CollectionUtils.isEmpty(albumTrackNeedPayList)) {
+                    albumTrackNeedPayList.forEach(f -> f.setIsShowPaidMark(true));
                 }
             }
         } else {
             boolean isNeedPay = false;
-            if (!SystemConstant.FREE_ALBUM.equals(albumInfo.getPayType())) {
+            //vip免费
+            if (SystemConstant.VIPFREE_ALBUM.equals(albumInfo.getPayType())) {
                 UserInfoVo userInfoVo = userFeignClient.getUserById(userId).getData();
-                //a,非vip用户
+                //a.非vip用户
                 if (userInfoVo.getIsVip().intValue() == 0) {
                     isNeedPay = true;
                 }
+                //b.是vip用户 但是vip过期
                 if (userInfoVo.getIsVip().intValue() == 1 && userInfoVo.getVipExpireTime().before(new Date())) {
                     isNeedPay = true;
                 }
@@ -133,13 +137,15 @@ public class TrackInfoServiceImpl extends ServiceImpl<TrackInfoMapper, TrackInfo
             } else {
                 isNeedPay = false;
             }
+            //需要付费，判断用户是否购买过专辑或声音
             if (isNeedPay) {
-                List<AlbumTrackListVo> albumTrackNeedPayList = albumTrackListVoList.stream().filter(f -> f.getOrderNum()
-                        .intValue() > albumInfo.getTracksForFree().intValue()).collect(Collectors.toList());
-                if (!CollectionUtils.isEmpty(albumTrackNeedPayList)) {
+                List<AlbumTrackListVo> albumTrackNeedPayList = albumTrackVoList.stream().filter(f -> f.getOrderNum()
+                                .intValue() > albumInfo.getTracksForFree().intValue()).collect(Collectors.toList());
+                if(!CollectionUtils.isEmpty(albumTrackNeedPayList)){
+                    //拿到需要付费专辑的id
                     List<Long> needPayTrackIdList = albumTrackNeedPayList.stream().map(AlbumTrackListVo::getTrackId).collect(Collectors.toList());
                     Map<Long, Boolean> paidMarkMap = userFeignClient.getUserShowPaidMarkOrNot(albumId, needPayTrackIdList).getData();
-                    albumTrackNeedPayList.forEach(item -> {
+                    albumTrackNeedPayList.forEach(item->{
                         item.setIsShowPaidMark(paidMarkMap.get(item.getTrackId()));
                     });
 
@@ -152,12 +158,123 @@ public class TrackInfoServiceImpl extends ServiceImpl<TrackInfoMapper, TrackInfo
     @Override
     public List<TrackTempVo> getTrackVoList(List<Long> trackIdList) {
         List<TrackInfo> trackInfoList = listByIds(trackIdList);
-        return trackInfoList.stream().map(trackInfo -> {
+        return trackInfoList.stream().map(trackInfo->{
             TrackTempVo trackTempVo = new TrackTempVo();
-            BeanUtils.copyProperties(trackInfo, trackTempVo);
+            BeanUtils.copyProperties(trackInfo,trackTempVo);
             trackTempVo.setTrackId(trackInfo.getId());
             return trackTempVo;
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Map<String, Object>> getTrackListToChoose(Long trackId) {
+        //获取声音信息
+        TrackInfo trackInfo = getById(trackId);
+        //获取专辑信息
+        Long albumId = trackInfo.getAlbumId();
+        AlbumInfo albumInfo = albumInfoService.getById(albumId);
+        //获取用户已经购买过的声音
+        List<Long> paidTrackIdList = userFeignClient.getPaidTrackIdList(albumId);
+        //获取比当前声音编号大的声音信息
+        LambdaQueryWrapper<TrackInfo> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(TrackInfo::getAlbumId,albumId);
+        wrapper.gt(TrackInfo::getOrderNum,trackInfo.getOrderNum());
+        wrapper.select(TrackInfo::getId);
+        List<TrackInfo> trackInfoList = list(wrapper);
+        List<Long> trackIdList = trackInfoList.stream().map(TrackInfo::getId).collect(Collectors.toList());
+        //未支付的声音id
+        List<Long> noPayTrackIdList = new ArrayList<>();
+        if(CollectionUtils.isEmpty(paidTrackIdList)){
+            noPayTrackIdList=trackIdList;
+        }else{
+            noPayTrackIdList=trackIdList.stream().filter(tempTrackId->!paidTrackIdList
+                     .contains(tempTrackId)).collect(Collectors.toList());
+        }
+        List<Map<String, Object>> list = new ArrayList<>();
+        //本集---写了一个最low的版本 作业---你自己优化
+        if(noPayTrackIdList.size()>=0){
+            Map<String, Object> map=new HashMap<>();
+            map.put("name", "本集");
+            map.put("price", albumInfo.getPrice());
+            map.put("trackCount", 0);
+            list.add(map);
+        }
+        //后多少集
+        if(noPayTrackIdList.size()>0&&noPayTrackIdList.size()<=10){
+            Map<String, Object> map=new HashMap<>();
+            int count = noPayTrackIdList.size();
+            BigDecimal price = albumInfo.getPrice().multiply(new BigDecimal(count));
+            map.put("name", "后"+count+"集");
+            map.put("price", price);
+            map.put("trackCount", count);
+            list.add(map);
+        }
+        if (noPayTrackIdList.size() > 10) {
+            Map<String, Object> map = new HashMap<>();
+            BigDecimal price = albumInfo.getPrice().multiply(new BigDecimal(10));
+            map.put("name", "后10集");
+            map.put("price", price);
+            map.put("trackCount", 10);
+            list.add(map);
+        }
+
+        //后20集
+        if (noPayTrackIdList.size() > 10 && noPayTrackIdList.size() <= 20) {
+            Map<String, Object> map = new HashMap<>();
+            int count = noPayTrackIdList.size();
+            BigDecimal price = albumInfo.getPrice().multiply(new BigDecimal(count));
+            map.put("name", "后" + count + "集");
+            map.put("price", price);
+            map.put("trackCount", count);
+            list.add(map);
+        }
+        if (noPayTrackIdList.size() > 20) {
+            Map<String, Object> map = new HashMap<>();
+            BigDecimal price = albumInfo.getPrice().multiply(new BigDecimal(20));
+            map.put("name", "后20集");
+            map.put("price", price);
+            map.put("trackCount", 20);
+            list.add(map);
+        }
+
+        //后30集
+        if (noPayTrackIdList.size() > 20 && noPayTrackIdList.size() <= 30) {
+            Map<String, Object> map = new HashMap<>();
+            int count = noPayTrackIdList.size();
+            BigDecimal price = albumInfo.getPrice().multiply(new BigDecimal(count));
+            map.put("name", "后" + count + "集");
+            map.put("price", price);
+            map.put("trackCount", count);
+            list.add(map);
+        }
+        if (noPayTrackIdList.size() > 30) {
+            Map<String, Object> map = new HashMap<>();
+            BigDecimal price = albumInfo.getPrice().multiply(new BigDecimal(30));
+            map.put("name", "后30集");
+            map.put("price", price);
+            map.put("trackCount", 30);
+            list.add(map);
+        }
+
+        //后50集
+        if (noPayTrackIdList.size() > 30 && noPayTrackIdList.size() <= 50) {
+            Map<String, Object> map = new HashMap<>();
+            int count = noPayTrackIdList.size();
+            BigDecimal price = albumInfo.getPrice().multiply(new BigDecimal(count));
+            map.put("name", "后" + count + "集");
+            map.put("price", price);
+            map.put("trackCount", count);
+            list.add(map);
+        }
+        if (noPayTrackIdList.size() > 50) {
+            Map<String, Object> map = new HashMap<>();
+            BigDecimal price = albumInfo.getPrice().multiply(new BigDecimal(50));
+            map.put("name", "后50集");
+            map.put("price", price);
+            map.put("trackCount", 50);
+            list.add(map);
+        }
+        return list;
     }
 
     private List<TrackStat> buildTrackStatData(Long trackId) {

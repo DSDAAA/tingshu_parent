@@ -91,9 +91,10 @@ public class CategoryController {
 
     @Operation(summary = "查询所有一级分类")
     @GetMapping("getCategory1")
-    public List<BaseCategory1> getCategory1(@PathVariable Long category1Id) {
+    public List<BaseCategory1> getCategory1() {
         LambdaQueryWrapper<BaseCategory1> wrapper = new LambdaQueryWrapper<>();
         wrapper.orderByAsc(BaseCategory1::getOrderNum);
-        return category1Service.list();
+        return category1Service.list(wrapper);
     }
+
 }
