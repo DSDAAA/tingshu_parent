@@ -1,8 +1,10 @@
 package com.atguigu.service;
 
 import com.atguigu.entity.AlbumInfo;
-import com.atguigu.entity.TrackInfo;
+import com.atguigu.vo.AlbumTempVo;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
 
 /**
  * <p>
@@ -23,4 +25,6 @@ public interface AlbumInfoService extends IService<AlbumInfo> {
     void deleteAlbumInfo(Long albumId);
 
     boolean isSubscribe(Long albumId);
+
+    List<AlbumTempVo> getAlbumTempList(List<Long> albumIdList);
 }

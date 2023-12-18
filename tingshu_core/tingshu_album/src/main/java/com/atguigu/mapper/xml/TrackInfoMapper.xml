@@ -4,71 +4,82 @@
 
     <select id="findUserTrackPage" resultType="com.atguigu.vo.TrackTempVo">
         select
-            any_value(d.albumId) as albumId,
-            d.albumTitle,
-            d.trackId,
-            d.trackTitle,
-            d.coverUrl,
-            d.mediaDuration,
-            d.status,
-            d.createTime,
-            MAX(IF(d.statType = '0701', d.statNum, 0)) as playStatNum,
-            MAX(IF(d.statType = '0702', d.statNum, 0)) as collectStatNum,
-            MAX(IF(d.statType = '0703', d.statNum, 0)) as praiseStatNum,
-            MAX(IF(d.statType = '0704', d.statNum, 0)) as commentStatNum
+        any_value(d.albumId) as albumId,
+        d.albumTitle,
+        d.trackId,
+        d.trackTitle,
+        d.coverUrl,
+        d.mediaDuration,
+        d.status,
+        d.createTime,
+        MAX(IF(d.statType = '0701', d.statNum, 0)) as playStatNum,
+        MAX(IF(d.statType = '0702', d.statNum, 0)) as collectStatNum,
+        MAX(IF(d.statType = '0703', d.statNum, 0)) as praiseStatNum,
+        MAX(IF(d.statType = '0704', d.statNum, 0)) as commentStatNum
         from (SELECT
-                  c.id AS albumId,
-                  c.album_title AS albumTitle,
-                  a.id AS trackId,
-                  a.track_title AS trackTitle,
-                  a.media_duration AS mediaDuration,
-                  IF ( a.cover_url IS NULL OR a.cover_url = '', c.cover_url, a.cover_url ) AS coverUrl,
-                  a.STATUS,
-                  a.create_time AS createTime,
-                  b.stat_type AS statType,
-                  b.stat_num AS statNum
-              FROM
-                  track_info a
-                  LEFT JOIN track_stat b ON a.id = b.track_id
-                  LEFT JOIN album_info c ON a.album_id = c.id
-                    <where>
-                        <if test="trackInfoQuery.userId != null">
-                            and a.user_id = #{trackInfoQuery.userId}
-                        </if>
-                        <if test="trackInfoQuery.trackTitle != null and trackInfoQuery.trackTitle != ''">
-                            and a.track_title like CONCAT('%',#{trackInfoQuery.trackTitle},'%')
-                        </if>
-                        <if test="trackInfoQuery.status != null and trackInfoQuery.status != ''">
-                            and a.status = #{trackInfoQuery.status}
-                        </if>
-                        and a.is_deleted = 0
-                    </where>
-              ) d
+        c.id AS albumId,
+        c.album_title AS albumTitle,
+        a.id AS trackId,
+        a.track_title AS trackTitle,
+        a.media_duration AS mediaDuration,
+        IF ( a.cover_url IS NULL OR a.cover_url = '', c.cover_url, a.cover_url ) AS coverUrl,
+        a.STATUS,
+        a.create_time AS createTime,
+        b.stat_type AS statType,
+        b.stat_num AS statNum
+        FROM
+        track_info a
+        LEFT JOIN track_stat b ON a.id = b.track_id
+        LEFT JOIN album_info c ON a.album_id = c.id
+        <where>
+            <if test="trackInfoQuery.userId != null">
+                and a.user_id = #{trackInfoQuery.userId}
+            </if>
+            <if test="trackInfoQuery.trackTitle != null and trackInfoQuery.trackTitle != ''">
+                and a.track_title like CONCAT('%',#{trackInfoQuery.trackTitle},'%')
+            </if>
+            <if test="trackInfoQuery.status != null and trackInfoQuery.status != ''">
+                and a.status = #{trackInfoQuery.status}
+            </if>
+            and a.is_deleted = 0
+        </where>
+        ) d
         GROUP BY d.trackId
         ORDER BY d.createTime
     </select>
     <select id="getAlbumTrackAndStatInfo" resultType="com.atguigu.vo.AlbumTrackListVo">
-        select
-            c.trackId,
-            any_value(c.trackTitle) as trackTitle,
-            c.mediaDuration,
-            c.orderNum,
-            c.createTime,
-            MAX(IF(c.statType = '0701', c.statNum, 0)) as playStatNum,
-            MAX(IF(c.statType = '0704', c.statNum, 0)) as commentStatNum,
-        from (select
-                  a.id AS trackId,
-                  a.track_title AS trackTitle,
-                  a.media_duration AS mediaDuration,
-                  a.order_num AS orderNum,
-                  a.create_time AS createTime,
-                  b.stat_type AS statType,
-                  b.stat_num AS statNum
-              FROM
-                  track_info a
-              LEFT JOIN track_stat b ON a.id = b.track_id
-              where a.album_id=1200 and  a.is_open='1' and a.status='0501') c
+        select c.trackId,
+               any_value(c.trackTitle)                    as trackTitle,
+               c.mediaDuration,
+               c.orderNum,
+               c.createTime,
+               MAX(IF(c.statType = '0701', c.statNum, 0)) as playStatNum,
+               MAX(IF(c.statType = '0704', c.statNum, 0)) as commentStatNum,
+        from (select a.id             AS trackId,
+                     a.track_title    AS trackTitle,
+                     a.media_duration AS mediaDuration,
+                     a.order_num      AS orderNum,
+                     a.create_time    AS createTime,
+                     b.stat_type      AS statType,
+                     b.stat_num       AS statNum
+              FROM track_info a
+                       LEFT JOIN track_stat b ON a.id = b.track_id
+              where a.album_id = 1200
+                and a.is_open = '1'
+                and a.status = '0501') c
         GROUP BY c.trackId
         ORDER BY c.orderNum asc
+    </select>
+    <select id="getTrackStatistics" resultType="com.atguigu.vo.TrackStatVo">
+        select MAX(IF(b.statType = '0701', b.statNum, 0)) as playStatNum,
+               MAX(IF(b.statType = '0702', b.statNum, 0)) as collectStatNum,
+               MAX(IF(b.statType = '0703', b.statNum, 0)) as praiseStatNum,
+               MAX(IF(b.statType = '0704', b.statNum, 0)) as commentStatNum
+        from (select a.track_id  AS trackId,
+                     a.stat_type AS statType,
+                     a.stat_num  AS statNum
+              FROM track_stat a
+              WHERE a.track_id = #{trackId}) b
+        group by b.trackId
     </select>
 </mapper>

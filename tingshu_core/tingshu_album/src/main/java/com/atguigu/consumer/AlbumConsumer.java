@@ -4,8 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.atguigu.constant.KafkaConstant;
 import com.atguigu.constant.SystemConstant;
 import com.atguigu.entity.AlbumStat;
+import com.atguigu.entity.TrackInfo;
 import com.atguigu.entity.TrackStat;
 import com.atguigu.service.AlbumStatService;
+import com.atguigu.service.TrackInfoService;
 import com.atguigu.service.TrackStatService;
 import com.atguigu.vo.TrackStatMqVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -24,6 +26,8 @@ public class AlbumConsumer {
     private AlbumStatService albumStatService;
     @Autowired
     private RedisTemplate redisTemplate;
+    @Autowired
+    private TrackInfoService trackInfoService;
 
     @KafkaListener(topics = KafkaConstant.UPDATE_TRACK_STAT_QUEUE)
     public void updateStat(String dataJson) {
@@ -48,7 +52,6 @@ public class AlbumConsumer {
                 albumStat.setStatNum(albumStat.getStatNum() + trackStatMqVo.getCount());
                 albumStatService.updateById(albumStat);
             }
-            //TODO 更新ES里播放量信息
         }
     }
 }
