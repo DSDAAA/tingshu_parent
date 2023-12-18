@@ -1,0 +1,93 @@
+server:
+  port: 8504
+mybatis-plus:
+  mapper-locations: classpath:com/atguigu/mapper/xml/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 查看日志
+feign:
+  sentinel:
+    enabled: true
+  client:
+    config:
+      default:
+        readTimeout: 90000
+        connectTimeout: 90000
+spring:
+  application:
+    name: tingshu-order
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.121.130:8848
+    sentinel:
+      transport:
+        dashboard: 192.168.121.130:8080
+  main:
+    allow-bean-definition-overriding: true #当遇到同样名字的时候，是否允许覆盖注册
+    allow-circular-references: true
+  data:
+    redis:
+      host: 192.168.121.130
+      port: 6389
+      database: 0
+      timeout: 1800000
+      jedis:
+        pool:
+          max-active: 20 #最大连接数
+          max-wait: -1    #最大阻塞等待时间(负数表示没限制)
+          max-idle: 5    #最大空闲
+          min-idle: 0     #最小空闲
+  kafka:
+    bootstrap-servers: 192.168.121.130:9092
+    producer:
+      #设置大于0的值，则客户端会将发送失败的记录重新发送
+      retries: 3
+      # ack应答机制，默认1，即只需要确认leader收到消息
+      acks: 1
+      # 同一批次内存大小（默认16K）
+      batch-size: 16384
+      # 生产者内存缓存区大小(32M)
+      buffer-memory: 33554432
+      # key和value的序列化（默认，可以不设置）
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: tingshu-order
+      enable-auto-commit: true
+      # earliest：从头开始消费   latest：从最新的开始消费   默认latest
+      auto-offset-reset: earliest
+      # key和value反序列化（默认，可以不设置）
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+  #    listener:
+  #      # 消费者并发能力
+  #      concurrency: 6
+  #      # 设置手动提交的时候，需要设置ackMode
+  #      #      RECORD :当listener一读到消息，就提交offset
+  #      #      BATCH: poll() 函数读取到的所有消息,就提交offset
+  #      #      TIME: 当超过设置的ackTime ，即提交Offset
+  #      #      COUNT ：当超过设置的COUNT，即提交Offset
+  #      #      COUNT_TIME ：TIME和COUNT两个条件都满足，提交offset
+  #      #      MANUAL ： 当每批poll的消息全部处理完，Acknowledgment.acknowledge()即提交Offset，和Batch类似
+  #      #      MANUAL_IMMEDIATE： 只要调用Acknowledgment.acknowledge()即提交Offset
+  #      ack-mode: MANUAL
+  #      topic: wangting
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://192.168.121.130:3316/tingshu_order?characterEncoding=utf-8&useSSL=false
+    username: root
+    password: 123
+    hikari:
+      connection-test-query: SELECT 1
+      connection-timeout: 60000
+      idle-timeout: 500000
+      max-lifetime: 540000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      pool-name: GuliHikariPool
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
